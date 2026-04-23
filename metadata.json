@@ -1,0 +1,6 @@
+{
+  "name": "Creative Diff Checker",
+  "description": "Visualizer for comparing two files of creative classifications (niches, styles, and target markets) by creative ID.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
