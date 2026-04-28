@@ -289,11 +289,12 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedNiche, setSelectedNiche] = useState<string>('all');
   const [selectedStyle, setSelectedStyle] = useState<string>('all');
+  const [displayLimit, setDisplayLimit] = useState(50);
 
   const normalizeItem = (item: any): CreativeData | null => {
     if (!item || typeof item !== 'object') return null;
-
-    // We search for these core fields across common containers: item itself, item.classification, item.results
+    
+    // ... no changes to normalization logic ...
     let creative_id: string | number | undefined;
     let method: string | undefined;
     let evidence: any;
@@ -302,20 +303,18 @@ export default function App() {
 
     const containers = [item.classification, item.results, item].filter(c => c && typeof c === 'object');
 
-    // 1. Try to find the creative identity
     for (const c of containers) {
       if (c.creative_id !== undefined) {
         creative_id = c.creative_id;
         break;
       }
     }
-    // Fallback: If no creative_id, look for 'id' in 'results' or root
+
     if (creative_id === undefined) {
       if (item.results && item.results.id !== undefined) creative_id = item.results.id;
       else if (item.id !== undefined) creative_id = item.id;
     }
 
-    // 2. Try to find classification data (niche, style, market)
     for (const c of containers) {
       if (c.classification && typeof c.classification === 'object' && (c.classification.niche || c.classification.content_style)) {
         summary = c.classification;
@@ -323,13 +322,11 @@ export default function App() {
       }
     }
 
-    // 3. Try to find evidence and method
     for (const c of containers) {
       if (c.evidence && !evidence) evidence = c.evidence;
       if (c.method && !method) method = c.method;
     }
 
-    // Critical fields needed to display or compare
     if (creative_id === undefined || !summary || !evidence) return null;
 
     return {
@@ -348,24 +345,18 @@ export default function App() {
     };
   };
 
+  // ... normalizeData ...
   const normalizeData = (data: any): CreativeData[] => {
     if (!data) return [];
-    
-    // If it's a list, process each item
     if (Array.isArray(data)) {
       return data.map(normalizeItem).filter((i): i is CreativeData => i !== null);
     }
-    
-    // Check if it's a wrapper with a list inside (e.g. { data: [...] })
     const possibleList = data.items || data.data || data.creatives || data.results || data.list;
     if (Array.isArray(possibleList)) {
       return possibleList.map(normalizeItem).filter((i): i is CreativeData => i !== null);
     }
-
-    // If it's a single object, it might be the item itself
     const single = normalizeItem(data);
     if (single) return [single];
-
     return [];
   };
 
@@ -387,27 +378,6 @@ export default function App() {
     };
   }, [sourceData]);
 
-  const analysisInfo = useMemo(() => {
-    if (!sourceData || !comparisonData) return null;
-    
-    const sourceList = normalizeData(sourceData);
-    const comparisonList = normalizeData(comparisonData);
-    
-    const sourceIds = new Set(sourceList.map(i => String(i.classification.creative_id)));
-    const comparisonIds = new Set(comparisonList.map(i => String(i.classification.creative_id)));
-    
-    let matches = 0;
-    comparisonIds.forEach(id => {
-      if (sourceIds.has(id)) matches++;
-    });
-
-    return {
-      sourceCount: sourceList.length,
-      comparisonCount: comparisonList.length,
-      matchCount: matches
-    };
-  }, [sourceData, comparisonData]);
-
   const results = useMemo(() => {
     if (!sourceData || !comparisonData) return [];
 
@@ -427,11 +397,9 @@ export default function App() {
       const original = sourceMap.get(id);
 
       if (original) {
-        // Compare classification summaries
         const sourceSummaries = original.classification.classification;
         const compSummaries = compItem.classification.classification;
 
-        // Ensure we have the data to compare
         if (!sourceSummaries || !compSummaries) return;
 
         const niche1 = Array.isArray(sourceSummaries.niche) ? [...sourceSummaries.niche].sort() : [];
@@ -478,15 +446,39 @@ export default function App() {
       list = list.filter(r => r.original.classification.classification.content_style.includes(selectedStyle));
     }
 
+    // Reset display limit when filtering changes
+    setDisplayLimit(50);
     return list;
   }, [results, searchQuery, selectedNiche, selectedStyle]);
 
-  const stats = {
+  const stats = useMemo(() => ({
     total: results.length,
     niche: results.filter(r => r.diffs.niche).length,
     style: results.filter(r => r.diffs.content_style).length,
-    market: results.filter(r => r.diffs.target_market).length,
-  };
+    market: results.filter(r => r.diffs.target_market).length
+  }), [results]);
+
+  const analysisInfo = useMemo(() => {
+    if (!sourceData || !comparisonData) return null;
+    const sourceList = normalizeData(sourceData);
+    const comparisonList = normalizeData(comparisonData);
+    
+    const sourceIds = new Set(sourceList.map(i => String(i.classification.creative_id)));
+    let matches = 0;
+    comparisonList.forEach(i => {
+      if (sourceIds.has(String(i.classification.creative_id))) matches++;
+    });
+
+    return {
+      sourceCount: sourceList.length,
+      comparisonCount: comparisonList.length,
+      matchCount: matches
+    };
+  }, [sourceData, comparisonData]);
+
+  const visibleResults = useMemo(() => {
+    return filteredResults.slice(0, displayLimit);
+  }, [filteredResults, displayLimit]);
 
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-zinc-100 font-sans selection:bg-blue-500/30">
@@ -648,70 +640,85 @@ export default function App() {
             </div>
 
             {/* Grid - 6 columns on large */}
-            {filteredResults.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                {filteredResults.map((result, idx) => (
-                  <motion.div
-                    key={`${result.creativeId}-${idx}`}
-                    layoutId={`${result.creativeId}-${idx}`}
-                    onClick={() => setSelectedItem(result)}
-                    className="group relative bg-[#151619] border border-zinc-800 rounded-3xl overflow-hidden cursor-pointer hover:border-zinc-600 transition-all shadow-xl"
-                  >
-                    <div className="aspect-square relative overflow-hidden">
-                      {result.original.metadata.includes('.mp4') ? (
-                        <video 
-                          src={result.original.metadata} 
-                          muted 
-                          loop 
-                          onMouseOver={(e) => e.currentTarget.play()}
-                          onMouseOut={(e) => e.currentTarget.pause()}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                        />
-                      ) : (
-                        <img 
-                          src={result.original.metadata} 
-                          alt="" 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          referrerPolicy="no-referrer"
-                        />
-                      )}
-                      
-                      {/* Tags Overlay */}
-                      <div className="absolute top-4 right-4 flex flex-col items-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 transition-transform">
-                        {result.original.classification.classification.niche.length > 0 && <Tag text={result.original.classification.classification.niche[0]} color="gray" />}
-                        {result.original.classification.classification.content_style.length > 0 && <Tag text={result.original.classification.classification.content_style[0]} color="blue" />}
-                        <Tag text={result.original.classification.classification.target_market} color="pink" />
-                      </div>
-                    </div>
-
-                    <div className="p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-xs font-mono text-zinc-500">ID: {result.creativeId}</span>
-                        <div className="flex gap-1.5">
-                          {result.diffs.niche && <div className="w-1.5 h-1.5 rounded-full bg-zinc-500" title="Niche Mismatch" />}
-                          {result.diffs.content_style && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" title="Style Mismatch" />}
-                          {result.diffs.target_market && <div className="w-1.5 h-1.5 rounded-full bg-pink-500" title="Market Mismatch" />}
+            {visibleResults.length > 0 ? (
+              <div className="space-y-12 pb-20">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {visibleResults.map((result, idx) => (
+                    <motion.div
+                      key={`${result.creativeId}-${idx}`}
+                      layoutId={`${result.creativeId}-${idx}`}
+                      onClick={() => setSelectedItem(result)}
+                      className="group relative bg-[#151619] border border-zinc-800 rounded-3xl overflow-hidden cursor-pointer hover:border-zinc-600 transition-all shadow-xl"
+                    >
+                      <div className="aspect-square relative overflow-hidden">
+                        {result.original.metadata.includes('.mp4') ? (
+                          <video 
+                            src={result.original.metadata} 
+                            muted 
+                            loop 
+                            onMouseOver={(e) => e.currentTarget.play()}
+                            onMouseOut={(e) => e.currentTarget.pause()}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                          />
+                        ) : (
+                          <img 
+                            src={result.original.metadata} 
+                            alt="" 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            referrerPolicy="no-referrer"
+                          />
+                        )}
+                        
+                        {/* Tags Overlay */}
+                        <div className="absolute top-4 right-4 flex flex-col items-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 transition-transform">
+                          {result.original.classification.classification.niche.length > 0 && <Tag text={result.original.classification.classification.niche[0]} color="gray" />}
+                          {result.original.classification.classification.content_style.length > 0 && <Tag text={result.original.classification.classification.content_style[0]} color="blue" />}
+                          <Tag text={result.original.classification.classification.target_market} color="pink" />
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <p className="text-[10px] text-zinc-600 font-bold uppercase">Original</p>
-                          <p className="text-xs text-white truncate">{result.original.classification.classification.niche[0] || 'N/A'}</p>
+                      <div className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-xs font-mono text-zinc-500">ID: {result.creativeId}</span>
+                          <div className="flex gap-1.5">
+                            {result.diffs.niche && <div className="w-1.5 h-1.5 rounded-full bg-zinc-500" title="Niche Mismatch" />}
+                            {result.diffs.content_style && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" title="Style Mismatch" />}
+                            {result.diffs.target_market && <div className="w-1.5 h-1.5 rounded-full bg-pink-500" title="Market Mismatch" />}
+                          </div>
                         </div>
-                        <div className="space-y-1 text-right">
-                          <p className="text-[10px] text-zinc-600 font-bold uppercase">Comparison</p>
-                          <p className="text-xs text-blue-400 truncate">{result.comparison.classification.classification.niche[0] || 'N/A'}</p>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-zinc-600 font-bold uppercase">Original</p>
+                            <p className="text-xs text-white truncate">{result.original.classification.classification.niche[0] || 'N/A'}</p>
+                          </div>
+                          <div className="space-y-1 text-right">
+                            <p className="text-[10px] text-zinc-600 font-bold uppercase">Comparison</p>
+                            <p className="text-xs text-blue-400 truncate">{result.comparison.classification.classification.niche[0] || 'N/A'}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center justify-between group/btn">
+                          <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Compare Evidence</span>
+                          <ChevronRight className="w-4 h-4 text-zinc-600 translate-x-0 group-hover/btn:translate-x-1 transition-transform" />
                         </div>
                       </div>
-                      
-                      <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center justify-between group/btn">
-                        <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Compare Evidence</span>
-                        <ChevronRight className="w-4 h-4 text-zinc-600 translate-x-0 group-hover/btn:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))}
+                </div>
+
+                {displayLimit < filteredResults.length && (
+                  <div className="flex justify-center">
+                    <button 
+                      onClick={() => setDisplayLimit(prev => prev + 50)}
+                      className="px-8 py-4 bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded-2xl font-bold text-sm transition-all flex items-center gap-3 active:scale-95"
+                    >
+                      <span className="text-zinc-400">Showing {visibleResults.length} of {filteredResults.length}</span>
+                      <div className="w-px h-4 bg-zinc-800" />
+                      <span>Load Next 50 Items</span>
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
                 <div className="flex flex-col items-center justify-center py-20 text-zinc-500 gap-4">
