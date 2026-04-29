@@ -29,7 +29,7 @@ export interface CreativeData {
 export interface ComparisonResult {
   creativeId: string;
   original: CreativeData;
-  comparison: CreativeData;
+  comparison?: CreativeData;
   diffs: {
     niche: boolean;
     content_style: boolean;

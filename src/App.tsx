@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Upload, 
@@ -104,16 +104,18 @@ const Tag = ({ text, color = 'blue' }: { text: string; color?: 'blue' | 'pink' |
   );
 };
 
-const EvidenceCard = ({ 
+interface EvidenceCardProps {
+  title: string;
+  confidence: number;
+  justification: string;
+  theme?: 'zinc' | 'blue' | 'pink';
+}
+
+const EvidenceCard: React.FC<EvidenceCardProps> = ({ 
   title, 
   confidence, 
   justification, 
   theme = 'zinc' 
-}: { 
-  title: string; 
-  confidence: number; 
-  justification: string;
-  theme?: 'zinc' | 'blue' | 'pink';
 }) => {
   const themes = {
     zinc: 'bg-[#1a1b1e]/50 border-zinc-800',
@@ -141,6 +143,19 @@ const Modal = ({
   item: ComparisonResult; 
   onClose: () => void 
 }) => {
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+
+  React.useEffect(() => {
+    if (videoRef.current && item?.original.metadata.includes('.mp4')) {
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Playback interrupted or prevented (e.g. by closing modal quickly)
+        });
+      }
+    }
+  }, [item?.original.metadata]);
+
   if (!item) return null;
 
   return (
@@ -165,20 +180,22 @@ const Modal = ({
               <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest leading-none">Creative ID</span>
               <span className="text-white font-mono text-sm leading-none">{item.creativeId}</span>
             </div>
-            <div className="flex gap-4">
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${item.diffs.niche ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
-                <span className="text-[10px] font-black uppercase text-zinc-500">Niche</span>
+            {item.comparison && (
+              <div className="flex gap-4">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${item.diffs.niche ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
+                  <span className="text-[10px] font-black uppercase text-zinc-500">Niche</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${item.diffs.content_style ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
+                  <span className="text-[10px] font-black uppercase text-zinc-500">Style</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${item.diffs.target_market ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
+                  <span className="text-[10px] font-black uppercase text-zinc-500">Market</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${item.diffs.content_style ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
-                <span className="text-[10px] font-black uppercase text-zinc-500">Style</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${item.diffs.target_market ? 'bg-amber-500 shadow-[0_0_8_px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
-                <span className="text-[10px] font-black uppercase text-zinc-500">Market</span>
-              </div>
-            </div>
+            )}
           </div>
           
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
@@ -193,7 +210,13 @@ const Modal = ({
           <div className="w-[30%] border-right border-zinc-800 p-8 flex flex-col gap-6 bg-zinc-900/30 shrink-0">
             <div className="aspect-square w-full rounded-2xl overflow-hidden bg-black border border-zinc-800 shadow-2xl">
               {item.original.metadata.includes('.mp4') ? (
-                <video src={item.original.metadata} autoPlay loop muted className="w-full h-full object-cover" />
+                <video 
+                  ref={videoRef}
+                  src={item.original.metadata} 
+                  loop 
+                  muted 
+                  className="w-full h-full object-cover" 
+                />
               ) : (
                 <img src={item.original.metadata} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               )}
@@ -208,12 +231,12 @@ const Modal = ({
                 <ExternalLink className="w-4 h-4" />
                 Open full asset
               </a>
-              {item.comparison.classification.method && (
+              {item.original.classification.method && (
                 <div className="p-4 bg-zinc-800/20 rounded-xl border border-zinc-800/50 flex items-center gap-3">
                   <Brain className="w-4 h-4 text-amber-500" />
                   <div>
                     <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest leading-none">Classifier Method</p>
-                    <p className="text-xs text-zinc-300 mt-1">{item.comparison.classification.method}</p>
+                    <p className="text-xs text-zinc-300 mt-1">{item.original.classification.method}</p>
                   </div>
                 </div>
               )}
@@ -223,9 +246,9 @@ const Modal = ({
           {/* Wide Right Area: Data Comparison */}
           <div className="flex-1 flex flex-col min-w-0 bg-[#0a0b0d]">
              {/* Labels Header */}
-             <div className="grid grid-cols-2 h-12 border-b border-zinc-800/50">
+             <div className={`grid ${item.comparison ? 'grid-cols-2' : 'grid-cols-1'} h-12 border-b border-zinc-800/50`}>
                <div className="flex items-center px-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.2em] bg-zinc-900/10">Original Dataset</div>
-               <div className="flex items-center px-8 text-[10px] font-black uppercase text-blue-500 tracking-[0.2em] bg-blue-500/5">Comparison Dataset</div>
+               {item.comparison && <div className="flex items-center px-8 text-[10px] font-black uppercase text-blue-500 tracking-[0.2em] bg-blue-500/5">Comparison Dataset</div>}
              </div>
 
              <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
@@ -236,21 +259,21 @@ const Modal = ({
                    id: 'niche', 
                    title: 'Niche Analysis', 
                    original: item.original.classification.evidence.niche, 
-                   comparison: item.comparison.classification.evidence.niche,
+                   comparison: item.comparison?.classification.evidence.niche,
                    theme: 'zinc' as const
                  },
                  { 
                    id: 'style', 
                    title: 'Content Style', 
                    original: item.original.classification.evidence.content_style, 
-                   comparison: item.comparison.classification.evidence.content_style,
+                   comparison: item.comparison?.classification.evidence.content_style,
                    theme: 'blue' as const
                  },
                  { 
                    id: 'market', 
                    title: 'Target Market', 
                    original: item.original.classification.evidence.target_market, 
-                   comparison: item.comparison.classification.evidence.target_market,
+                   comparison: item.comparison?.classification.evidence.target_market,
                    theme: 'pink' as const
                  }
                ].map(section => (
@@ -259,18 +282,38 @@ const Modal = ({
                       <h4 className="text-xs font-black uppercase text-zinc-400 tracking-widest">{section.title}</h4>
                       <div className="h-px bg-zinc-800 flex-1" />
                    </div>
-                   <div className="grid grid-cols-2 gap-8">
-                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 self-start">
-                        {Object.entries(section.original).map(([t, d]) => (
-                          <EvidenceCard key={t} title={t} confidence={d.confidence} justification={d.justification} theme={section.theme} />
-                        ))}
-                     </div>
-                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 self-start">
-                        {Object.entries(section.comparison).map(([t, d]) => (
-                          <EvidenceCard key={t} title={t} confidence={d.confidence} justification={d.justification} theme={section.theme} />
-                        ))}
-                     </div>
-                   </div>
+                    <div className={`grid ${item.comparison ? 'grid-cols-2' : 'grid-cols-1'} gap-8`}>
+                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 self-start">
+                        {Object.entries(section.original).map(([t, d]) => {
+                          const evidence = d as EvidenceDetail;
+                          return (
+                            <EvidenceCard 
+                              key={t} 
+                              title={t} 
+                              confidence={evidence.confidence} 
+                              justification={evidence.justification} 
+                              theme={section.theme} 
+                            />
+                          );
+                        })}
+                      </div>
+                      {section.comparison && (
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 self-start">
+                          {Object.entries(section.comparison).map(([t, d]) => {
+                            const evidence = d as EvidenceDetail;
+                            return (
+                              <EvidenceCard 
+                                key={t} 
+                                title={t} 
+                                confidence={evidence.confidence} 
+                                justification={evidence.justification} 
+                                theme={section.theme} 
+                              />
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                  </section>
                ))}
              </div>
@@ -290,11 +333,11 @@ export default function App() {
   const [selectedNiche, setSelectedNiche] = useState<string>('all');
   const [selectedStyle, setSelectedStyle] = useState<string>('all');
   const [displayLimit, setDisplayLimit] = useState(50);
+  const [forceViewMode, setForceViewMode] = useState(false);
 
   const normalizeItem = (item: any): CreativeData | null => {
     if (!item || typeof item !== 'object') return null;
     
-    // ... no changes to normalization logic ...
     let creative_id: string | number | undefined;
     let method: string | undefined;
     let evidence: any;
@@ -311,9 +354,15 @@ export default function App() {
     }
 
     if (creative_id === undefined) {
-      if (item.results && item.results.id !== undefined) creative_id = item.results.id;
-      else if (item.id !== undefined) creative_id = item.id;
+      if (item.results && (item.results.id !== undefined || item.results.creative_id !== undefined)) {
+        creative_id = item.results.creative_id !== undefined ? item.results.creative_id : item.results.id;
+      } else if (item.id !== undefined) {
+        creative_id = item.id;
+      }
     }
+
+    // Capture the creative_id as a string for comparison purposes
+    const idString = creative_id !== undefined ? String(creative_id) : undefined;
 
     for (const c of containers) {
       if (c.classification && typeof c.classification === 'object' && (c.classification.niche || c.classification.content_style)) {
@@ -327,12 +376,12 @@ export default function App() {
       if (c.method && !method) method = c.method;
     }
 
-    if (creative_id === undefined || !summary || !evidence) return null;
+    if (idString === undefined || !summary || !evidence) return null;
 
     return {
       id: typeof item.id === 'number' ? item.id : (typeof item.id === 'string' ? parseInt(item.id) || 0 : 0),
       classification: {
-        creative_id,
+        creative_id: idString,
         method,
         evidence,
         classification: {
@@ -379,9 +428,23 @@ export default function App() {
   }, [sourceData]);
 
   const results = useMemo(() => {
-    if (!sourceData || !comparisonData) return [];
+    if (!sourceData) return [];
 
     const sourceList = normalizeData(sourceData);
+    
+    // If we only have sourceData, we show all items in "View Mode"
+    if (!comparisonData) {
+      return sourceList.map(item => ({
+        creativeId: String(item.classification.creative_id),
+        original: item,
+        diffs: {
+          niche: false,
+          content_style: false,
+          target_market: false
+        }
+      }));
+    }
+
     const comparisonList = normalizeData(comparisonData);
 
     const sourceMap = new Map<string, CreativeData>();
@@ -459,8 +522,18 @@ export default function App() {
   }), [results]);
 
   const analysisInfo = useMemo(() => {
-    if (!sourceData || !comparisonData) return null;
+    if (!sourceData) return null;
     const sourceList = normalizeData(sourceData);
+    
+    if (!comparisonData) {
+      return {
+        sourceCount: sourceList.length,
+        comparisonCount: 0,
+        matchCount: 0,
+        isViewOnly: true
+      };
+    }
+
     const comparisonList = normalizeData(comparisonData);
     
     const sourceIds = new Set(sourceList.map(i => String(i.classification.creative_id)));
@@ -472,7 +545,8 @@ export default function App() {
     return {
       sourceCount: sourceList.length,
       comparisonCount: comparisonList.length,
-      matchCount: matches
+      matchCount: matches,
+      isViewOnly: false
     };
   }, [sourceData, comparisonData]);
 
@@ -561,40 +635,67 @@ export default function App() {
                 <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Source Items</span>
                 <span className="text-sm font-mono font-bold">{analysisInfo.sourceCount}</span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Comparison Items</span>
-                <span className="text-sm font-mono font-bold">{analysisInfo.comparisonCount}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Matched IDs</span>
-                <span className="text-sm font-mono font-bold text-blue-400">{analysisInfo.matchCount}</span>
-              </div>
+              {!analysisInfo.isViewOnly && (
+                <>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Comparison Items</span>
+                    <span className="text-sm font-mono font-bold">{analysisInfo.comparisonCount}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Matched IDs</span>
+                    <span className="text-sm font-mono font-bold text-blue-400">{analysisInfo.matchCount}</span>
+                  </div>
+                </>
+              )}
             </div>
             
-            {analysisInfo.matchCount === 0 && (
-              <div className="flex items-center gap-2 text-amber-500 text-xs font-bold">
-                <AlertCircle className="w-4 h-4" />
-                NO MATCHING CREATIVE_IDs FOUND
-              </div>
-            )}
-            {analysisInfo.matchCount > 0 && results.length === 0 && (
-              <div className="flex items-center gap-2 text-emerald-500 text-xs font-bold">
-                <CheckCircle2 className="w-4 h-4" />
-                ALL MATCHED ITEMS ARE IDENTICAL
+            {!analysisInfo.isViewOnly ? (
+              <>
+                {analysisInfo.matchCount === 0 && (
+                  <div className="flex items-center gap-2 text-amber-500 text-xs font-bold">
+                    <AlertCircle className="w-4 h-4" />
+                    NO MATCHING CREATIVE_IDs FOUND
+                  </div>
+                )}
+                {analysisInfo.matchCount > 0 && results.length === 0 && (
+                  <div className="flex items-center gap-2 text-emerald-500 text-xs font-bold">
+                    <CheckCircle2 className="w-4 h-4" />
+                    ALL MATCHED ITEMS ARE IDENTICAL
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex items-center gap-2 text-blue-400 text-xs font-bold">
+                <FileJson className="w-4 h-4" />
+                SINGLE FILE VIEW MODE
               </div>
             )}
           </div>
         )}
 
         {/* Upload State */}
-        {!sourceData || !comparisonData ? (
+        {!sourceData ? (
           <div className="max-w-xl mx-auto flex flex-col gap-8 mt-20">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl font-black tracking-tight">DATA COMPARISON</h2>
-              <p className="text-zinc-500">Upload both files to identify creative classification discrepancies.</p>
+              <h2 className="text-3xl font-black tracking-tight">DATA VISUALIZER</h2>
+              <p className="text-zinc-500">Upload a JSON file to explore its contents or compare two files.</p>
+            </div>
+            <div className="grid grid-cols-1 gap-6">
+              <FileUploader 
+                label="Source File (Original)" 
+                onFileLoaded={setSourceData} 
+                fileLoaded={!!sourceData} 
+              />
+            </div>
+          </div>
+        ) : !forceViewMode && !comparisonData ? (
+          <div className="max-w-xl mx-auto flex flex-col gap-8 mt-20">
+            <div className="text-center space-y-2">
+              <h2 className="text-3xl font-black tracking-tight">ADD SECOND FILE?</h2>
+              <p className="text-zinc-500 text-sm">You can view the original file now or upload a comparison file.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FileUploader 
+               <FileUploader 
                 label="Source File (Original)" 
                 onFileLoaded={setSourceData} 
                 fileLoaded={!!sourceData} 
@@ -605,39 +706,57 @@ export default function App() {
                 fileLoaded={!!comparisonData} 
               />
             </div>
-            {sourceData && comparisonData && (
-              <motion.button 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                onClick={() => {}} // Comparison happens via useMemo
-                className="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20"
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={() => {
+                  // We already have results from sourceData, but the logic 
+                  // is stuck in the "Upload State" if comparisonData is null.
+                  // I will handle this by checking if summary bars should show.
+                }}
+                className="hidden" // Just for semantic placeholder
+              />
+              {comparisonData && (
+                <motion.button 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  onClick={() => {}} 
+                  className="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20"
+                >
+                  Start Analysis
+                  <ChevronRight className="w-5 h-5" />
+                </motion.button>
+              )}
+              <button 
+                onClick={() => setForceViewMode(true)}
+                className="text-zinc-500 hover:text-white text-sm font-bold transition-colors py-2"
               >
-                Start Analysis
-                <ChevronRight className="w-5 h-5" />
-              </motion.button>
-            )}
+                Continue with single file →
+              </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-8">
             
             {/* Summary Bars */}
-            <div className="grid grid-cols-3 gap-6 max-w-7xl mx-auto">
-              {[
-                { label: 'Niche Mismatches', value: stats.niche, color: 'bg-zinc-500' },
-                { label: 'Style Mismatches', value: stats.style, color: 'bg-blue-600' },
-                { label: 'Market Mismatches', value: stats.market, color: 'bg-pink-600' }
-              ].map((stat, i) => (
-                <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase text-zinc-500 tracking-wider leading-none">Detection Type</p>
-                    <h3 className="font-bold text-sm">{stat.label}</h3>
+            {comparisonData && (
+              <div className="grid grid-cols-3 gap-6 max-w-7xl mx-auto">
+                {[
+                  { label: 'Niche Mismatches', value: stats.niche, color: 'bg-zinc-500' },
+                  { label: 'Style Mismatches', value: stats.style, color: 'bg-blue-600' },
+                  { label: 'Market Mismatches', value: stats.market, color: 'bg-pink-600' }
+                ].map((stat, i) => (
+                  <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase text-zinc-500 tracking-wider leading-none">Detection Type</p>
+                      <h3 className="font-bold text-sm">{stat.label}</h3>
+                    </div>
+                    <div className={`px-4 py-1 rounded-full ${stat.color} text-white font-mono font-black`}>
+                      {stat.value}
+                    </div>
                   </div>
-                  <div className={`px-4 py-1 rounded-full ${stat.color} text-white font-mono font-black`}>
-                    {stat.value}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             {/* Grid - 6 columns on large */}
             {visibleResults.length > 0 ? (
@@ -656,8 +775,17 @@ export default function App() {
                             src={result.original.metadata} 
                             muted 
                             loop 
-                            onMouseOver={(e) => e.currentTarget.play()}
-                            onMouseOut={(e) => e.currentTarget.pause()}
+                            onMouseOver={(e) => {
+                              const playPromise = e.currentTarget.play();
+                              if (playPromise !== undefined) {
+                                playPromise.catch(() => {
+                                  // Playback interrupted or prevented
+                                });
+                              }
+                            }}
+                            onMouseOut={(e) => {
+                              e.currentTarget.pause();
+                            }}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                           />
                         ) : (
@@ -687,19 +815,23 @@ export default function App() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className={`grid ${result.comparison ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
                           <div className="space-y-1">
-                            <p className="text-[10px] text-zinc-600 font-bold uppercase">Original</p>
+                            <p className="text-[10px] text-zinc-600 font-bold uppercase">{result.comparison ? 'Original' : 'Category'}</p>
                             <p className="text-xs text-white truncate">{result.original.classification.classification.niche[0] || 'N/A'}</p>
                           </div>
-                          <div className="space-y-1 text-right">
-                            <p className="text-[10px] text-zinc-600 font-bold uppercase">Comparison</p>
-                            <p className="text-xs text-blue-400 truncate">{result.comparison.classification.classification.niche[0] || 'N/A'}</p>
-                          </div>
+                          {result.comparison && (
+                            <div className="space-y-1 text-right">
+                              <p className="text-[10px] text-zinc-600 font-bold uppercase">Comparison</p>
+                              <p className="text-xs text-blue-400 truncate">{result.comparison.classification.classification.niche[0] || 'N/A'}</p>
+                            </div>
+                          )}
                         </div>
                         
                         <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center justify-between group/btn">
-                          <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Compare Evidence</span>
+                          <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
+                            {result.comparison ? 'Compare Evidence' : 'View Details'}
+                          </span>
                           <ChevronRight className="w-4 h-4 text-zinc-600 translate-x-0 group-hover/btn:translate-x-1 transition-transform" />
                         </div>
                       </div>
