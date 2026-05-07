@@ -16,7 +16,10 @@ import {
   ExternalLink,
   Brain,
   Filter,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Link as LinkIcon,
+  Copy,
+  Check
 } from 'lucide-react';
 import { 
   CreativeData, 
@@ -139,6 +142,45 @@ const EvidenceCard: React.FC<EvidenceCardProps> = ({
   );
 };
 
+/**
+ * Компонент для отображения и копирования ссылки
+ */
+const MetadataLink = ({ url }: { url: string }) => {
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (!url) return null;
+
+  return (
+    <div className="flex items-center gap-2 group/link">
+      <div className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-lg px-4 py-2 flex items-center gap-3 hover:bg-white/10 transition-colors">
+        <LinkIcon className="w-4 h-4 text-blue-400 shrink-0" />
+        <a 
+          href={url} 
+          target="_blank" 
+          rel="noreferrer" 
+          className="text-xs text-zinc-300 truncate hover:text-blue-400 transition-colors"
+        >
+          {url}
+        </a>
+      </div>
+      <button 
+        onClick={handleCopy}
+        className={`p-2 rounded-lg border transition-all ${copied ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10'}`}
+        title="Copy to clipboard"
+      >
+        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+      </button>
+    </div>
+  );
+};
+
 const Modal = ({ 
   item, 
   onClose 
@@ -256,6 +298,26 @@ const Modal = ({
 
              <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
                
+               {/* Metadata & Links Section */}
+               <section className="space-y-4">
+                 <div className="flex items-center gap-3">
+                   <h4 className="text-xs font-black uppercase text-zinc-400 tracking-widest">Metadata & Links</h4>
+                   <div className="h-px bg-zinc-800 flex-1" />
+                 </div>
+                 <div className={`grid ${item.comparison ? 'grid-cols-2' : 'grid-cols-1'} gap-8`}>
+                   <div className="space-y-3">
+                     <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest leading-none mb-1 text-center">Original Asset Link</p>
+                     <MetadataLink url={item.original.metadata} />
+                   </div>
+                   {item.comparison && (
+                     <div className="space-y-3">
+                       <p className="text-[10px] text-blue-500/70 uppercase font-black tracking-widest leading-none mb-1 text-center">Comparison Asset Link</p>
+                       <MetadataLink url={item.comparison.metadata} />
+                     </div>
+                   )}
+                 </div>
+               </section>
+
                {/* Comparison Grid Section */}
                {[
                  { 
