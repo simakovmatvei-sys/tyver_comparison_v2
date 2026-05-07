@@ -111,6 +111,9 @@ interface EvidenceCardProps {
   theme?: 'zinc' | 'blue' | 'pink';
 }
 
+/**
+ * Отображение карточки с доказательством (confidence и обоснование)
+ */
 const EvidenceCard: React.FC<EvidenceCardProps> = ({ 
   title, 
   confidence, 
@@ -236,7 +239,7 @@ const Modal = ({
                   <Brain className="w-4 h-4 text-amber-500" />
                   <div>
                     <p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest leading-none">Classifier Method</p>
-                    <p className="text-xs text-zinc-300 mt-1">{item.original.classification.method}</p>
+                    <p className="text-xs text-zinc-300 mt-1">{getMethodDisplayName(item.original.classification.method)}</p>
                   </div>
                 </div>
               )}
@@ -325,13 +328,31 @@ const Modal = ({
   );
 };
 
+/**
+ * Функция для преобразования технических имен методов в читаемые названия
+ */
+const getMethodDisplayName = (method?: string) => {
+  if (!method) return 'N/A';
+  if (method === 'fast_classifier') return 'Classifier';
+  if (method === 'qwen_fallback') return 'Qwen';
+  return method;
+};
+
 export default function App() {
+  // Состояние данных
   const [sourceData, setSourceData] = useState<any>(null);
   const [comparisonData, setComparisonData] = useState<any>(null);
+  
+  // Состояние UI
   const [selectedItem, setSelectedItem] = useState<ComparisonResult | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Фильтры
   const [selectedNiche, setSelectedNiche] = useState<string>('all');
   const [selectedStyle, setSelectedStyle] = useState<string>('all');
+  const [selectedMethod, setSelectedMethod] = useState<string>('all');
+  
+  // Настройки отображения
   const [displayLimit, setDisplayLimit] = useState(50);
   const [forceViewMode, setForceViewMode] = useState(false);
 
@@ -509,10 +530,23 @@ export default function App() {
       list = list.filter(r => r.original.classification.classification.content_style.includes(selectedStyle));
     }
 
+    if (selectedMethod !== 'all') {
+      list = list.filter(r => {
+        const method = r.original.classification.method;
+        if (selectedMethod === 'Classifier') {
+          return method === 'fast_classifier';
+        }
+        if (selectedMethod === 'Qwen') {
+          return method === 'qwen_fallback';
+        }
+        return false;
+      });
+    }
+
     // Reset display limit when filtering changes
     setDisplayLimit(50);
     return list;
-  }, [results, searchQuery, selectedNiche, selectedStyle]);
+  }, [results, searchQuery, selectedNiche, selectedStyle, selectedMethod]);
 
   const stats = useMemo(() => ({
     total: results.length,
@@ -571,11 +605,12 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Niche Filter */}
+            {/* Фильтр по нише */}
             {availableFilters.niches.length > 0 && (
               <div className="flex items-center gap-2">
                 <Filter className="w-3 h-3 text-zinc-500" />
                 <select 
+                  id="filter-niche"
                   value={selectedNiche}
                   onChange={(e) => setSelectedNiche(e.target.value)}
                   className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 transition-colors w-40"
@@ -588,10 +623,11 @@ export default function App() {
               </div>
             )}
 
-            {/* Style Filter */}
+            {/* Фильтр по стилю */}
             {availableFilters.styles.length > 0 && (
               <div className="flex items-center gap-2">
                 <select 
+                  id="filter-style"
                   value={selectedStyle}
                   onChange={(e) => setSelectedStyle(e.target.value)}
                   className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 transition-colors w-40"
@@ -603,6 +639,20 @@ export default function App() {
                 </select>
               </div>
             )}
+
+            {/* Фильтр по методу классификации */}
+            <div className="flex items-center gap-2">
+              <select 
+                id="filter-method"
+                value={selectedMethod}
+                onChange={(e) => setSelectedMethod(e.target.value)}
+                className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 transition-colors w-32"
+              >
+                <option value="all">All Methods</option>
+                <option value="Classifier">Classifier</option>
+                <option value="Qwen">Qwen</option>
+              </select>
+            </div>
 
             <div className="relative ml-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
