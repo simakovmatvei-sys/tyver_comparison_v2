@@ -19,7 +19,8 @@ import {
   ArrowRightLeft,
   Link as LinkIcon,
   Copy,
-  Check
+  Check,
+  FileType
 } from 'lucide-react';
 import { 
   CreativeData, 
@@ -177,6 +178,97 @@ const MetadataLink = ({ url }: { url: string }) => {
       >
         {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
       </button>
+    </div>
+  );
+};
+
+interface FilterState {
+  niche: string;
+  style: string;
+  method: string;
+}
+
+const FilterSection = ({ 
+  label, 
+  options, 
+  filters, 
+  onChange,
+  color = "blue"
+}: { 
+  label: string; 
+  options: { niches: string[], styles: string[] };
+  filters: FilterState;
+  onChange: (key: keyof FilterState, value: string) => void;
+  color?: "blue" | "zinc" | "emerald";
+}) => {
+  const accentColors = {
+    blue: "border-blue-500/20 bg-blue-500/5 text-blue-400",
+    zinc: "border-zinc-800 bg-zinc-900/40 text-zinc-400",
+    emerald: "border-emerald-500/20 bg-emerald-500/5 text-emerald-400"
+  };
+
+  const selectBaseClass = "bg-zinc-900/80 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-[11px] font-medium focus:outline-none focus:border-blue-500/50 hover:border-zinc-700 transition-all cursor-pointer appearance-none text-zinc-300";
+
+  return (
+    <div className={`flex flex-col gap-2 p-2.5 rounded-xl border ${accentColors[color]} transition-all group/filter w-full max-w-md`}>
+      <div className="flex items-center justify-between gap-4 mb-0.5 px-0.5">
+        <div className="flex items-center gap-2">
+          <Filter className="w-3 h-3 text-blue-500 group-hover/filter:scale-110 transition-transform" />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">{label}</span>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-3 gap-2">
+        {/* Фильтр по нише */}
+        <div className="relative group/sel">
+          <select 
+            value={filters.niche}
+            onChange={(e) => onChange('niche', e.target.value)}
+            className={`${selectBaseClass} w-full pr-8`}
+          >
+            <option value="all">Any Niche</option>
+            {options.niches.map(n => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+            <ChevronRight className="w-3 h-3 rotate-90" />
+          </div>
+        </div>
+
+        {/* Фильтр по стилю */}
+        <div className="relative group/sel">
+          <select 
+            value={filters.style}
+            onChange={(e) => onChange('style', e.target.value)}
+            className={`${selectBaseClass} w-full pr-8`}
+          >
+            <option value="all">Any Style</option>
+            {options.styles.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+            <ChevronRight className="w-3 h-3 rotate-90" />
+          </div>
+        </div>
+
+        {/* Фильтр по методу */}
+        <div className="relative group/sel">
+          <select 
+            value={filters.method}
+            onChange={(e) => onChange('method', e.target.value)}
+            className={`${selectBaseClass} w-full pr-8`}
+          >
+            <option value="all">Methods</option>
+            <option value="Classifier">Classifier</option>
+            <option value="Qwen">Qwen</option>
+          </select>
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+            <ChevronRight className="w-3 h-3 rotate-90" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -409,10 +501,9 @@ export default function App() {
   const [selectedItem, setSelectedItem] = useState<ComparisonResult | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Фильтры
-  const [selectedNiche, setSelectedNiche] = useState<string>('all');
-  const [selectedStyle, setSelectedStyle] = useState<string>('all');
-  const [selectedMethod, setSelectedMethod] = useState<string>('all');
+  // Независимые фильтры для двух документов
+  const [filtersA, setFiltersA] = useState<FilterState>({ niche: 'all', style: 'all', method: 'all' });
+  const [filtersB, setFiltersB] = useState<FilterState>({ niche: 'all', style: 'all', method: 'all' });
   
   // Настройки отображения
   const [displayLimit, setDisplayLimit] = useState(50);
@@ -493,22 +584,27 @@ export default function App() {
   };
 
   const availableFilters = useMemo(() => {
-    const niches = new Set<string>();
-    const styles = new Set<string>();
-
-    if (sourceData) {
-      const sourceList = normalizeData(sourceData);
-      sourceList.forEach(item => {
-        item.classification.classification.niche.forEach(n => niches.add(n));
-        item.classification.classification.content_style.forEach(s => styles.add(s));
-      });
-    }
+    const getOptions = (data: any) => {
+      const niches = new Set<string>();
+      const styles = new Set<string>();
+      if (data) {
+        const list = normalizeData(data);
+        list.forEach(item => {
+          item.classification.classification.niche.forEach(n => niches.add(n));
+          item.classification.classification.content_style.forEach(s => styles.add(s));
+        });
+      }
+      return {
+        niches: Array.from(niches).sort(),
+        styles: Array.from(styles).sort()
+      };
+    };
 
     return {
-      niches: Array.from(niches).sort(),
-      styles: Array.from(styles).sort()
+      source: getOptions(sourceData),
+      comparison: getOptions(comparisonData)
     };
-  }, [sourceData]);
+  }, [sourceData, comparisonData]);
 
   const results = useMemo(() => {
     if (!sourceData) return [];
@@ -579,36 +675,45 @@ export default function App() {
   const filteredResults = useMemo(() => {
     let list = results;
     
+    // Поиск по ID (глобальный)
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       list = list.filter(r => r.creativeId.includes(lowerQuery));
     }
 
-    if (selectedNiche !== 'all') {
-      list = list.filter(r => r.original.classification.classification.niche.includes(selectedNiche));
-    }
-
-    if (selectedStyle !== 'all') {
-      list = list.filter(r => r.original.classification.classification.content_style.includes(selectedStyle));
-    }
-
-    if (selectedMethod !== 'all') {
-      list = list.filter(r => {
-        const method = r.original.classification.method;
-        if (selectedMethod === 'Classifier') {
-          return method === 'fast_classifier';
-        }
-        if (selectedMethod === 'Qwen') {
-          return method === 'qwen_fallback';
-        }
+    const applyFilters = (item: CreativeData, filters: FilterState) => {
+      // Ниша
+      if (filters.niche !== 'all' && !item.classification.classification.niche.includes(filters.niche)) {
         return false;
+      }
+      // Стиль
+      if (filters.style !== 'all' && !item.classification.classification.content_style.includes(filters.style)) {
+        return false;
+      }
+      // Метод
+      if (filters.method !== 'all') {
+        const method = item.classification.method;
+        const normalizedSelected = filters.method === 'Classifier' ? 'fast_classifier' : (filters.method === 'Qwen' ? 'qwen_fallback' : filters.method);
+        if (method !== normalizedSelected) return false;
+      }
+      return true;
+    };
+
+    // Применяем фильтр A к источнику
+    list = list.filter(r => applyFilters(r.original, filtersA));
+
+    // Применяем фильтр B к сравнению (если оно есть)
+    if (comparisonData) {
+      list = list.filter(r => {
+        if (!r.comparison) return false;
+        return applyFilters(r.comparison, filtersB);
       });
     }
 
     // Reset display limit when filtering changes
     setDisplayLimit(50);
     return list;
-  }, [results, searchQuery, selectedNiche, selectedStyle, selectedMethod]);
+  }, [results, searchQuery, filtersA, filtersB, comparisonData]);
 
   const stats = useMemo(() => ({
     total: results.length,
@@ -654,83 +759,63 @@ export default function App() {
     <div className="min-h-screen bg-[#0a0b0d] text-zinc-100 font-sans selection:bg-blue-500/30">
       
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-[#0a0b0d]/80 backdrop-blur-md border-b border-zinc-800/50">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="grid grid-cols-2 gap-1">
-              <div className="w-3 h-3 bg-blue-500 rounded-sm" />
-              <div className="w-3 h-3 bg-zinc-500 rounded-sm" />
-              <div className="w-3 h-3 bg-zinc-500 rounded-sm" />
-              <div className="w-3 h-3 bg-zinc-500 rounded-sm" />
+      <header className="z-40 bg-[#0a0b0d]/95 backdrop-blur-xl border-b border-zinc-800/60 shadow-xl shadow-black/40">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between gap-12">
+          <div className="flex items-center gap-4 shrink-0 group/logo cursor-default">
+            <div className="grid grid-cols-2 gap-1.5">
+              <div className="w-3.5 h-3.5 bg-blue-500 rounded-full group-hover/logo:scale-110 transition-transform" />
+              <div className="w-3.5 h-3.5 bg-zinc-600 rounded-full group-hover/logo:scale-110 transition-transform delay-75" />
+              <div className="w-3.5 h-3.5 bg-emerald-500 rounded-full group-hover/logo:scale-110 transition-transform delay-100" />
+              <div className="w-3.5 h-3.5 bg-zinc-700 rounded-full group-hover/logo:scale-110 transition-transform delay-150" />
             </div>
-            <h1 className="text-xl font-black tracking-tight uppercase">Creative Visualizer</h1>
+            <div className="flex flex-col">
+              <h1 className="text-xs font-black tracking-[0.4em] uppercase leading-none text-zinc-500">Creative</h1>
+              <span className="text-3xl font-black tracking-tighter uppercase leading-none mt-1.5">Visualizer</span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Фильтр по нише */}
-            {availableFilters.niches.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Filter className="w-3 h-3 text-zinc-500" />
-                <select 
-                  id="filter-niche"
-                  value={selectedNiche}
-                  onChange={(e) => setSelectedNiche(e.target.value)}
-                  className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 transition-colors w-40"
-                >
-                  <option value="all">Every Niche</option>
-                  {availableFilters.niches.map(n => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </select>
-              </div>
+          <div className="flex-1 flex flex-col items-end gap-3 min-w-0">
+            {/* Панель фильтров для первого файла */}
+            {sourceData && (
+              <FilterSection 
+                label={comparisonData ? "Dataset A (Original)" : "Filters"}
+                options={availableFilters.source}
+                filters={filtersA}
+                color="zinc"
+                onChange={(key, val) => setFiltersA(prev => ({ ...prev, [key]: val }))}
+              />
             )}
 
-            {/* Фильтр по стилю */}
-            {availableFilters.styles.length > 0 && (
-              <div className="flex items-center gap-2">
-                <select 
-                  id="filter-style"
-                  value={selectedStyle}
-                  onChange={(e) => setSelectedStyle(e.target.value)}
-                  className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 transition-colors w-40"
-                >
-                  <option value="all">Every Style</option>
-                  {availableFilters.styles.map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
+            {/* Панель фильтров для второго файла */}
+            {comparisonData && (
+              <FilterSection 
+                label="Dataset B (Comparison)"
+                options={availableFilters.comparison}
+                filters={filtersB}
+                color="blue"
+                onChange={(key, val) => setFiltersB(prev => ({ ...prev, [key]: val }))}
+              />
             )}
+          </div>
 
-            {/* Фильтр по методу классификации */}
-            <div className="flex items-center gap-2">
-              <select 
-                id="filter-method"
-                value={selectedMethod}
-                onChange={(e) => setSelectedMethod(e.target.value)}
-                className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 transition-colors w-32"
-              >
-                <option value="all">All Methods</option>
-                <option value="Classifier">Classifier</option>
-                <option value="Qwen">Qwen</option>
-              </select>
-            </div>
+          <div className="w-px h-24 bg-gradient-to-b from-transparent via-zinc-800 to-transparent mx-2" />
 
-            <div className="relative ml-2">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <div className="flex flex-col gap-3 shrink-0">
+            <div className="relative group/search">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-hover/search:text-blue-500 transition-colors" />
               <input 
                 type="text" 
-                placeholder="Search ID..." 
+                placeholder="Filter IDs..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors w-48"
+                className="bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:border-blue-500/50 transition-all w-32 xl:w-48 placeholder:text-zinc-700 group-hover:border-zinc-700"
               />
             </div>
-            <div className="h-4 w-px bg-zinc-800 mx-1" />
-            <div className="flex items-center gap-6">
+            
+            <div className="flex items-center justify-end gap-4 px-1">
               <div className="flex flex-col items-end">
-                <span className="text-[10px] text-zinc-500 font-bold uppercase">Differences Found</span>
-                <span className="text-lg font-black font-mono">{stats.total}</span>
+                <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest leading-none mb-1">Found</span>
+                <span className="text-xl font-black font-mono leading-none text-blue-500">{filteredResults.length}</span>
               </div>
             </div>
           </div>
