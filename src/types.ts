@@ -13,6 +13,7 @@ export interface ClassificationSummary {
   niche: string[];
   content_style: string[];
   target_market: string;
+  hook?: string | null; // Текст хука (если есть, иначе null)
 }
 
 export interface CreativeData {

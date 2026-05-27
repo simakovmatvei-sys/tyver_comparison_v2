@@ -182,12 +182,15 @@ const MetadataLink = ({ url }: { url: string }) => {
   );
 };
 
+// Состояние фильтров приложения, включая новый фильтр по хукам
 interface FilterState {
   niche: string;
   style: string;
   method: string;
+  hook: string; // Новое поле для фильтрации по хукам
 }
 
+// Компонент раздела фильтров для вывода независимых селектов DataSet A или B
 const FilterSection = ({ 
   label, 
   options, 
@@ -196,7 +199,7 @@ const FilterSection = ({
   color = "blue"
 }: { 
   label: string; 
-  options: { niches: string[], styles: string[] };
+  options: { niches: string[], styles: string[], hooks: string[] }; // Добавлены хуки в сигнатуру
   filters: FilterState;
   onChange: (key: keyof FilterState, value: string) => void;
   color?: "blue" | "zinc" | "emerald";
@@ -210,7 +213,7 @@ const FilterSection = ({
   const selectBaseClass = "bg-zinc-900/80 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-[11px] font-medium focus:outline-none focus:border-blue-500/50 hover:border-zinc-700 transition-all cursor-pointer appearance-none text-zinc-300";
 
   return (
-    <div className={`flex flex-col gap-2 p-2.5 rounded-xl border ${accentColors[color]} transition-all group/filter w-full max-w-md`}>
+    <div className={`flex flex-col gap-2 p-2.5 rounded-xl border ${accentColors[color]} transition-all group/filter w-full max-w-xl`}>
       <div className="flex items-center justify-between gap-4 mb-0.5 px-0.5">
         <div className="flex items-center gap-2">
           <Filter className="w-3 h-3 text-blue-500 group-hover/filter:scale-110 transition-transform" />
@@ -218,7 +221,8 @@ const FilterSection = ({
         </div>
       </div>
       
-      <div className="grid grid-cols-3 gap-2">
+      {/* Сетка фильтров изменена на 4 колонки, чтобы аккуратно вместить фильтр Hook */}
+      <div className="grid grid-cols-4 gap-2">
         {/* Фильтр по нише */}
         <div className="relative group/sel">
           <select 
@@ -263,6 +267,27 @@ const FilterSection = ({
             <option value="all">Methods</option>
             <option value="Classifier">Classifier</option>
             <option value="Qwen">Qwen</option>
+          </select>
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+            <ChevronRight className="w-3 h-3 rotate-90" />
+          </div>
+        </div>
+
+        {/* Новый фильтр по хуку */}
+        <div className="relative group/sel">
+          <select 
+            value={filters.hook}
+            onChange={(e) => onChange('hook', e.target.value)}
+            className={`${selectBaseClass} w-full pr-8`}
+          >
+            <option value="all">Any Hook</option>
+            <option value="has_hook">Has Hook</option>
+            <option value="no_hook">No Hook</option>
+            {options.hooks.map(h => (
+              <option key={h} value={h} className="truncate">
+                {h.length > 30 ? h.substring(0, 30) + '...' : h}
+              </option>
+            ))}
           </select>
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
             <ChevronRight className="w-3 h-3 rotate-90" />
@@ -410,6 +435,34 @@ const Modal = ({
                  </div>
                </section>
 
+               {/* Раздел отображения хука в модальном окне */}
+               <section className="space-y-4">
+                 <div className="flex items-center gap-3">
+                   <h4 className="text-xs font-black uppercase text-zinc-400 tracking-widest">Hook Text</h4>
+                   <div className="h-px bg-zinc-800 flex-1" />
+                 </div>
+                 <div className={`grid ${item.comparison ? 'grid-cols-2' : 'grid-cols-1'} gap-8`}>
+                   <div className="p-4 rounded-xl border border-zinc-800/80 bg-[#121316] select-text">
+                     <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-1.5">Original Hook</p>
+                     <p className="text-xs text-zinc-300 whitespace-pre-wrap leading-relaxed font-semibold">
+                       {parseHookVal(item.original.classification.classification.hook)}
+                     </p>
+                   </div>
+                   {item.comparison && (
+                     <div className="p-4 rounded-xl border border-blue-900/40 bg-blue-950/20 select-text">
+                       <p className="text-[10px] text-blue-400 uppercase font-black tracking-widest mb-1.5">Comparison Hook</p>
+                       <p className={`text-xs whitespace-pre-wrap leading-relaxed font-semibold ${
+                         parseHookVal(item.original.classification.classification.hook) !== parseHookVal(item.comparison.classification.classification.hook)
+                           ? 'text-amber-400'
+                           : 'text-zinc-300'
+                       }`}>
+                         {parseHookVal(item.comparison.classification.classification.hook)}
+                       </p>
+                     </div>
+                   )}
+                 </div>
+               </section>
+
                {/* Comparison Grid Section */}
                {[
                  { 
@@ -492,6 +545,20 @@ const getMethodDisplayName = (method?: string) => {
   return method;
 };
 
+/**
+ * Функция для разбора значения хука и возвращения строки (или "---" для null/undefined)
+ */
+const parseHookVal = (val: any): string => {
+  if (val === null || val === undefined) return '---';
+  if (Array.isArray(val)) {
+    return val.length > 0 ? val.join(', ') : '---';
+  }
+  if (typeof val === 'string') {
+    return val.trim() || '---';
+  }
+  return String(val) || '---';
+};
+
 export default function App() {
   // Состояние данных
   const [sourceData, setSourceData] = useState<any>(null);
@@ -501,9 +568,9 @@ export default function App() {
   const [selectedItem, setSelectedItem] = useState<ComparisonResult | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Независимые фильтры для двух документов
-  const [filtersA, setFiltersA] = useState<FilterState>({ niche: 'all', style: 'all', method: 'all' });
-  const [filtersB, setFiltersB] = useState<FilterState>({ niche: 'all', style: 'all', method: 'all' });
+  // Независимые фильтры для двух документов (Dataset A и Dataset B + фильтр hook)
+  const [filtersA, setFiltersA] = useState<FilterState>({ niche: 'all', style: 'all', method: 'all', hook: 'all' });
+  const [filtersB, setFiltersB] = useState<FilterState>({ niche: 'all', style: 'all', method: 'all', hook: 'all' });
   
   // Настройки отображения
   const [displayLimit, setDisplayLimit] = useState(50);
@@ -552,6 +619,20 @@ export default function App() {
 
     if (idString === undefined || !summary || !evidence) return null;
 
+    // Ищем hook в классификации или самом объекте
+    let hook: string | null = null;
+    if (summary && summary.hook !== undefined) {
+      hook = summary.hook;
+    }
+    if (hook === null) {
+      for (const c of containers) {
+        if (c.hook !== undefined) {
+          hook = c.hook;
+          break;
+        }
+      }
+    }
+
     return {
       id: typeof item.id === 'number' ? item.id : (typeof item.id === 'string' ? parseInt(item.id) || 0 : 0),
       classification: {
@@ -561,7 +642,8 @@ export default function App() {
         classification: {
           niche: Array.isArray(summary.niche) ? summary.niche : [],
           content_style: Array.isArray(summary.content_style) ? summary.content_style : [],
-          target_market: summary.target_market || 'N/A'
+          target_market: summary.target_market || 'N/A',
+          hook: hook // Сохраняем разобранный хук
         }
       },
       metadata
@@ -583,20 +665,29 @@ export default function App() {
     return [];
   };
 
+  // Определение доступных опций фильтрации на основе загруженных файлов данных
   const availableFilters = useMemo(() => {
     const getOptions = (data: any) => {
       const niches = new Set<string>();
       const styles = new Set<string>();
+      const hooks = new Set<string>(); // Создание множества под уникальные тексты хуков
       if (data) {
         const list = normalizeData(data);
         list.forEach(item => {
           item.classification.classification.niche.forEach(n => niches.add(n));
           item.classification.classification.content_style.forEach(s => styles.add(s));
+          
+          // Получаем разобранный хук для добавления в опции фильтра
+          const h = parseHookVal(item.classification.classification.hook);
+          if (h && h !== '---') {
+            hooks.add(h);
+          }
         });
       }
       return {
         niches: Array.from(niches).sort(),
-        styles: Array.from(styles).sort()
+        styles: Array.from(styles).sort(),
+        hooks: Array.from(hooks).sort() // Сортируем собранные хуки
       };
     };
 
@@ -695,6 +786,18 @@ export default function App() {
         const method = item.classification.method;
         const normalizedSelected = filters.method === 'Classifier' ? 'fast_classifier' : (filters.method === 'Qwen' ? 'qwen_fallback' : filters.method);
         if (method !== normalizedSelected) return false;
+      }
+      // Фильтр по наличию или значению текста хука (Hook)
+      if (filters.hook !== 'all') {
+        const hookVal = parseHookVal(item.classification.classification.hook);
+        if (filters.hook === 'has_hook') {
+          if (hookVal === '---') return false; // Исключаем записи без хука
+        } else if (filters.hook === 'no_hook') {
+          if (hookVal !== '---') return false; // Исключаем записи с хуком
+        } else {
+          // Совпадение по строгому тексту хука
+          if (hookVal !== filters.hook) return false;
+        }
       }
       return true;
     };
@@ -1022,6 +1125,25 @@ export default function App() {
                               <p className="text-[10px] text-zinc-600 font-bold uppercase">Comparison</p>
                               <p className="text-xs text-blue-400 truncate">{result.comparison.classification.classification.niche[0] || 'N/A'}</p>
                             </div>
+                          )}
+                        </div>
+
+                        {/* Отображение хука (Hook) в карточке списка */}
+                        <div className="mt-4 pt-3 border-t border-zinc-800/80 grid grid-cols-1 gap-1">
+                          <p className="text-[10px] text-zinc-600 font-bold uppercase">Hook</p>
+                          {result.comparison ? (
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <p className="text-zinc-400 truncate" title={parseHookVal(result.original.classification.classification.hook)}>
+                                {parseHookVal(result.original.classification.classification.hook)}
+                              </p>
+                              <p className="text-blue-400 truncate text-right font-medium" title={parseHookVal(result.comparison.classification.classification.hook)}>
+                                {parseHookVal(result.comparison.classification.classification.hook)}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-zinc-400 truncate" title={parseHookVal(result.original.classification.classification.hook)}>
+                              {parseHookVal(result.original.classification.classification.hook)}
+                            </p>
                           )}
                         </div>
                         
