@@ -131,7 +131,7 @@ const EvidenceCard: React.FC<EvidenceCardProps> = ({
   };
 
   return (
-    <div className={`p-3 rounded-lg border ${themes[theme]} text-white h-full shadow-lg group/ev`}>
+    <div className={`p-3 rounded-lg border ${themes[theme]} text-white flex-1 shadow-lg group/ev`}>
       <div className="flex items-start justify-between gap-2 mb-1.5 border-b border-white/5 pb-1">
         <span className="text-sm font-black text-white/90 leading-tight">{title}</span>
         <span className="text-xs font-mono font-bold opacity-60 shrink-0">[{confidence}]</span>
@@ -184,10 +184,12 @@ const MetadataLink = ({ url }: { url: string }) => {
 
 // Состояние фильтров приложения, включая новый фильтр по хукам
 interface FilterState {
-  niche: string;
-  style: string;
-  method: string;
-  hook: string; // Новое поле для фильтрации по хукам
+  hook: string;
+  sexy: string;
+  gambling: string;
+  creo_lang: string;
+  game_name: string;
+  game_type: string;
 }
 
 // Компонент раздела фильтров для вывода независимых селектов DataSet A или B
@@ -199,7 +201,13 @@ const FilterSection = ({
   color = "blue"
 }: { 
   label: string; 
-  options: { niches: string[], styles: string[], hooks: string[] }; // Добавлены хуки в сигнатуру
+  options: { 
+    hooks: string[], 
+    sexys: string[], 
+    gamblings: string[], 
+    creoLangs: string[], 
+    gameTypes: string[] 
+  };
   filters: FilterState;
   onChange: (key: keyof FilterState, value: string) => void;
   color?: "blue" | "zinc" | "emerald";
@@ -210,7 +218,8 @@ const FilterSection = ({
     emerald: "border-emerald-500/20 bg-emerald-500/5 text-emerald-400"
   };
 
-  const selectBaseClass = "bg-zinc-900/80 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-[11px] font-medium focus:outline-none focus:border-blue-500/50 hover:border-zinc-700 transition-all cursor-pointer appearance-none text-zinc-300";
+  const selectBaseClass = "bg-zinc-900/80 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-[11px] font-medium focus:outline-none focus:border-blue-500/50 hover:border-zinc-700 transition-all cursor-pointer appearance-none text-zinc-300 w-full";
+  const inputBaseClass = "bg-zinc-900/80 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-[11px] font-medium focus:outline-none focus:border-blue-500/50 hover:border-zinc-700 transition-all text-zinc-300 w-full placeholder:text-zinc-600";
 
   return (
     <div className={`flex flex-col gap-2 p-2.5 rounded-xl border ${accentColors[color]} transition-all group/filter w-full max-w-xl`}>
@@ -221,18 +230,18 @@ const FilterSection = ({
         </div>
       </div>
       
-      {/* Сетка фильтров изменена на 4 колонки, чтобы аккуратно вместить фильтр Hook */}
-      <div className="grid grid-cols-4 gap-2">
-        {/* Фильтр по нише */}
+      {/* Сетка фильтров изменена на 6 колонок/строк для компактности */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {/* Фильтр по Hook */}
         <div className="relative group/sel">
           <select 
-            value={filters.niche}
-            onChange={(e) => onChange('niche', e.target.value)}
-            className={`${selectBaseClass} w-full pr-8`}
+            value={filters.hook}
+            onChange={(e) => onChange('hook', e.target.value)}
+            className={`${selectBaseClass} pr-8`}
           >
-            <option value="all">Any Niche</option>
-            {options.niches.map(n => (
-              <option key={n} value={n}>{n}</option>
+            <option value="all">Any Hook</option>
+            {options.hooks.map(h => (
+              <option key={h} value={h}>{h}</option>
             ))}
           </select>
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
@@ -240,15 +249,15 @@ const FilterSection = ({
           </div>
         </div>
 
-        {/* Фильтр по стилю */}
+        {/* Фильтр по Sexy */}
         <div className="relative group/sel">
           <select 
-            value={filters.style}
-            onChange={(e) => onChange('style', e.target.value)}
-            className={`${selectBaseClass} w-full pr-8`}
+            value={filters.sexy}
+            onChange={(e) => onChange('sexy', e.target.value)}
+            className={`${selectBaseClass} pr-8`}
           >
-            <option value="all">Any Style</option>
-            {options.styles.map(s => (
+            <option value="all">Any Sexy</option>
+            {options.sexys.map(s => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
@@ -257,41 +266,66 @@ const FilterSection = ({
           </div>
         </div>
 
-        {/* Фильтр по методу */}
+        {/* Фильтр по Gambling */}
         <div className="relative group/sel">
           <select 
-            value={filters.method}
-            onChange={(e) => onChange('method', e.target.value)}
-            className={`${selectBaseClass} w-full pr-8`}
+            value={filters.gambling}
+            onChange={(e) => onChange('gambling', e.target.value)}
+            className={`${selectBaseClass} pr-8`}
           >
-            <option value="all">Methods</option>
-            <option value="Classifier">Classifier</option>
-            <option value="Qwen">Qwen</option>
+            <option value="all">Any Gambling</option>
+            {options.gamblings.map(g => (
+              <option key={g} value={g}>{g}</option>
+            ))}
           </select>
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
             <ChevronRight className="w-3 h-3 rotate-90" />
           </div>
         </div>
 
-        {/* Новый фильтр по хуку */}
+        {/* Фильтр по Creo Lang */}
         <div className="relative group/sel">
           <select 
-            value={filters.hook}
-            onChange={(e) => onChange('hook', e.target.value)}
-            className={`${selectBaseClass} w-full pr-8`}
+            value={filters.creo_lang}
+            onChange={(e) => onChange('creo_lang', e.target.value)}
+            className={`${selectBaseClass} pr-8`}
           >
-            <option value="all">Any Hook</option>
-            <option value="has_hook">Has Hook</option>
-            <option value="no_hook">No Hook</option>
-            {options.hooks.map(h => (
-              <option key={h} value={h} className="truncate">
-                {h.length > 30 ? h.substring(0, 30) + '...' : h}
-              </option>
+            <option value="all">Any Creo Lang</option>
+            {options.creoLangs.map(l => (
+              <option key={l} value={l}>{l}</option>
             ))}
           </select>
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
             <ChevronRight className="w-3 h-3 rotate-90" />
           </div>
+        </div>
+
+        {/* Фильтр по Game Type */}
+        <div className="relative group/sel">
+          <select 
+            value={filters.game_type}
+            onChange={(e) => onChange('game_type', e.target.value)}
+            className={`${selectBaseClass} pr-8`}
+          >
+            <option value="all">Any Game Type</option>
+            {options.gameTypes.map(gt => (
+              <option key={gt} value={gt}>{gt}</option>
+            ))}
+          </select>
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+            <ChevronRight className="w-3 h-3 rotate-90" />
+          </div>
+        </div>
+
+        {/* Фильтр по Game Name (Текстовый инпут) */}
+        <div className="relative">
+          <input 
+            type="text"
+            placeholder="Game Name..."
+            value={filters.game_name}
+            onChange={(e) => onChange('game_name', e.target.value)}
+            className={inputBaseClass}
+          />
         </div>
       </div>
     </div>
@@ -308,7 +342,7 @@ const Modal = ({
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
   React.useEffect(() => {
-    if (videoRef.current && item?.original.metadata.includes('.mp4')) {
+    if (videoRef.current && typeof item?.original?.metadata === 'string' && item.original.metadata.includes('.mp4')) {
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
@@ -316,7 +350,7 @@ const Modal = ({
         });
       }
     }
-  }, [item?.original.metadata]);
+  }, [item?.original?.metadata]);
 
   if (!item) return null;
 
@@ -342,18 +376,45 @@ const Modal = ({
               <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest leading-none">Creative ID</span>
               <span className="text-white font-mono text-sm leading-none">{item.creativeId}</span>
             </div>
+            
+            {/* Metadata Links */}
+            <div className="flex items-center gap-4 border-l border-zinc-800 pl-6">
+              {item?.original?.metadata && (
+                <a 
+                  href={item.original.metadata} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1.5 transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  <span>Original Link</span>
+                </a>
+              )}
+              {item.comparison && item?.comparison?.metadata && (
+                <a 
+                  href={item.comparison.metadata} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1.5 transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  <span>Comparison Link</span>
+                </a>
+              )}
+            </div>
+
             {item.comparison && (
-              <div className="flex gap-4">
+              <div className="flex gap-4 border-l border-zinc-800 pl-6">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${item.diffs.niche ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
+                  <div className={`w-2 h-2 rounded-full ${(item.diffs && item.diffs.game_type) ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
                   <span className="text-[10px] font-black uppercase text-zinc-500">Niche</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${item.diffs.content_style ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
+                  <div className={`w-2 h-2 rounded-full ${(item.diffs && item.diffs.creo_lang) ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
                   <span className="text-[10px] font-black uppercase text-zinc-500">Style</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${item.diffs.target_market ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
+                  <div className={`w-2 h-2 rounded-full ${(item.diffs && item.diffs.gambling) ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
                   <span className="text-[10px] font-black uppercase text-zinc-500">Market</span>
                 </div>
               </div>
@@ -369,31 +430,24 @@ const Modal = ({
         <div className="flex-1 flex min-h-0">
           
           {/* Narrow Left Bar: Media */}
-          <div className="w-[30%] border-right border-zinc-800 p-8 flex flex-col gap-6 bg-zinc-900/30 shrink-0">
+          <div className="w-[30%] border-r border-zinc-800 p-8 flex flex-col gap-6 bg-zinc-900/30 shrink-0">
             <div className="aspect-square w-full rounded-2xl overflow-hidden bg-black border border-zinc-800 shadow-2xl">
-              {item.original.metadata.includes('.mp4') ? (
+              {typeof item?.original?.metadata === 'string' && item.original.metadata.includes('.mp4') ? (
                 <video 
                   ref={videoRef}
                   src={item.original.metadata} 
                   loop 
                   muted 
+                  autoPlay 
+                  playsInline 
                   className="w-full h-full object-cover" 
                 />
               ) : (
-                <img src={item.original.metadata} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                <img src={item?.original?.metadata || ''} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               )}
             </div>
             <div className="space-y-4">
-              <a 
-                href={item.original.metadata} 
-                target="_blank" 
-                rel="noreferrer"
-                className="w-full flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white py-3 rounded-xl text-sm font-bold transition-all"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Open full asset
-              </a>
-              {item.original.classification.method && (
+              {item?.original?.classification?.method && (
                 <div className="p-4 bg-zinc-800/20 rounded-xl border border-zinc-800/50 flex items-center gap-3">
                   <Brain className="w-4 h-4 text-amber-500" />
                   <div>
@@ -414,118 +468,63 @@ const Modal = ({
              </div>
 
              <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
-               
-               {/* Metadata & Links Section */}
-               <section className="space-y-4">
-                 <div className="flex items-center gap-3">
-                   <h4 className="text-xs font-black uppercase text-zinc-400 tracking-widest">Metadata & Links</h4>
-                   <div className="h-px bg-zinc-800 flex-1" />
-                 </div>
-                 <div className={`grid ${item.comparison ? 'grid-cols-2' : 'grid-cols-1'} gap-8`}>
-                   <div className="space-y-3">
-                     <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest leading-none mb-1 text-center">Original Asset Link</p>
-                     <MetadataLink url={item.original.metadata} />
-                   </div>
-                   {item.comparison && (
-                     <div className="space-y-3">
-                       <p className="text-[10px] text-blue-500/70 uppercase font-black tracking-widest leading-none mb-1 text-center">Comparison Asset Link</p>
-                       <MetadataLink url={item.comparison.metadata} />
-                     </div>
-                   )}
-                 </div>
-               </section>
 
-               {/* Раздел отображения хука в модальном окне */}
-               <section className="space-y-4">
-                 <div className="flex items-center gap-3">
-                   <h4 className="text-xs font-black uppercase text-zinc-400 tracking-widest">Hook Text</h4>
-                   <div className="h-px bg-zinc-800 flex-1" />
-                 </div>
-                 <div className={`grid ${item.comparison ? 'grid-cols-2' : 'grid-cols-1'} gap-8`}>
-                   <div className="p-4 rounded-xl border border-zinc-800/80 bg-[#121316] select-text">
-                     <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-1.5">Original Hook</p>
-                     <p className="text-xs text-zinc-300 whitespace-pre-wrap leading-relaxed font-semibold">
-                       {parseHookVal(item.original.classification.classification.hook)}
-                     </p>
-                   </div>
-                   {item.comparison && (
-                     <div className="p-4 rounded-xl border border-blue-900/40 bg-blue-950/20 select-text">
-                       <p className="text-[10px] text-blue-400 uppercase font-black tracking-widest mb-1.5">Comparison Hook</p>
-                       <p className={`text-xs whitespace-pre-wrap leading-relaxed font-semibold ${
-                         parseHookVal(item.original.classification.classification.hook) !== parseHookVal(item.comparison.classification.classification.hook)
-                           ? 'text-amber-400'
-                           : 'text-zinc-300'
-                       }`}>
-                         {parseHookVal(item.comparison.classification.classification.hook)}
-                       </p>
-                     </div>
-                   )}
-                 </div>
-               </section>
+                {/* Comparison Grid Section */}
+                {[
+                  { id: "gambling", title: "Gambling / iGaming", field: "gambling" },
+                  { id: "hook", title: "Hook Text", field: "hook" },
+                  { id: "sexy", title: "Sexy Content", field: "sexy" },
+                  { id: "game_name", title: "Game Name", field: "game_name" },
+                  { id: "game_provider", title: "Game Provider", field: "game_provider" },
+                  { id: "game_type", title: "Game Type", field: "game_type" },
+                  { id: "audio_lang", title: "Audio Language", field: "audio_lang" },
+                  { id: "creo_lang", title: "Creo Language", field: "creo_lang" }
+                ].map(section => {
+                  const origVal = item?.original?.classification?.classification?.[section.field] || "Unknown";
+                  const compVal = item?.comparison?.classification?.classification?.[section.field];
+                  
+                  const origEvidence = item?.original?.classification?.evidence?.[section.field]?.[origVal];
+                  const compEvidence = (compVal && item?.comparison?.classification?.evidence) ? item.comparison.classification.evidence[section.field]?.[compVal] : undefined;
 
-               {/* Comparison Grid Section */}
-               {[
-                 { 
-                   id: 'niche', 
-                   title: 'Niche Analysis', 
-                   original: item.original.classification.evidence.niche, 
-                   comparison: item.comparison?.classification.evidence.niche,
-                   theme: 'zinc' as const
-                 },
-                 { 
-                   id: 'style', 
-                   title: 'Content Style', 
-                   original: item.original.classification.evidence.content_style, 
-                   comparison: item.comparison?.classification.evidence.content_style,
-                   theme: 'blue' as const
-                 },
-                 { 
-                   id: 'market', 
-                   title: 'Target Market', 
-                   original: item.original.classification.evidence.target_market, 
-                   comparison: item.comparison?.classification.evidence.target_market,
-                   theme: 'pink' as const
-                 }
-               ].map(section => (
-                 <section key={section.id} className="space-y-4">
-                   <div className="flex items-center gap-3">
-                      <h4 className="text-xs font-black uppercase text-zinc-400 tracking-widest">{section.title}</h4>
-                      <div className="h-px bg-zinc-800 flex-1" />
-                   </div>
-                    <div className={`grid ${item.comparison ? 'grid-cols-2' : 'grid-cols-1'} gap-8`}>
-                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 self-start">
-                        {Object.entries(section.original).map(([t, d]) => {
-                          const evidence = d as EvidenceDetail;
-                          return (
-                            <EvidenceCard 
-                              key={t} 
-                              title={t} 
-                              confidence={evidence.confidence} 
-                              justification={evidence.justification} 
-                              theme={section.theme} 
-                            />
-                          );
-                        })}
+                  return (
+                    <section key={section.id} className="space-y-4">
+                      <div className="flex items-center gap-3">
+                         <h4 className="text-sm font-black uppercase text-zinc-200 tracking-wider">{section.title}</h4>
+                         <div className="h-px bg-zinc-800 flex-1" />
                       </div>
-                      {section.comparison && (
-                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 self-start">
-                          {Object.entries(section.comparison).map(([t, d]) => {
-                            const evidence = d as EvidenceDetail;
-                            return (
-                              <EvidenceCard 
-                                key={t} 
-                                title={t} 
-                                confidence={evidence.confidence} 
-                                justification={evidence.justification} 
-                                theme={section.theme} 
-                              />
-                            );
-                          })}
+                      <div className={"grid " + (item.comparison ? "grid-cols-2" : "grid-cols-1") + " gap-8"}>
+                        <div className="flex flex-col h-full">
+                          <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg space-y-3 shadow-lg">
+                            <p className="text-sm font-bold text-white">{origVal}</p>
+                            {origEvidence && (
+                              <div className="pt-2.5 border-t border-white/5 flex items-start justify-between gap-4">
+                                <p className="text-[11px] leading-snug text-zinc-400 flex-1">
+                                  {origEvidence.justification || "No justification provided."}
+                                </p>
+                                <span className="text-xs font-mono font-bold text-zinc-500 shrink-0">[{origEvidence.confidence}]</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                 </section>
-               ))}
+                        {item.comparison && compVal !== undefined && (
+                          <div className="flex flex-col h-full">
+                            <div className={"p-4 rounded-lg border space-y-3 shadow-lg " + ((item?.diffs && item.diffs[section.field]) ? "border-amber-500/50 bg-amber-500/5" : "border-zinc-800 bg-zinc-900/50")}>
+                              <p className={"text-sm font-bold " + (item.diffs[section.field] ? "text-amber-400" : "text-white")}>{compVal}</p>
+                              {compEvidence && (
+                                <div className="pt-2.5 border-t border-white/5 flex items-start justify-between gap-4">
+                                  <p className="text-[11px] leading-snug text-zinc-400 flex-1">
+                                    {compEvidence.justification || "No justification provided."}
+                                  </p>
+                                  <span className="text-xs font-mono font-bold text-zinc-500 shrink-0">[{compEvidence.confidence}]</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </section>
+                  );
+                })}
              </div>
           </div>
 
@@ -568,9 +567,23 @@ export default function App() {
   const [selectedItem, setSelectedItem] = useState<ComparisonResult | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Независимые фильтры для двух документов (Dataset A и Dataset B + фильтр hook)
-  const [filtersA, setFiltersA] = useState<FilterState>({ niche: 'all', style: 'all', method: 'all', hook: 'all' });
-  const [filtersB, setFiltersB] = useState<FilterState>({ niche: 'all', style: 'all', method: 'all', hook: 'all' });
+  // Независимые фильтры для двух документов (Dataset A и Dataset B + фильтры по ключам)
+  const [filtersA, setFiltersA] = useState<FilterState>({ 
+    hook: 'all', 
+    sexy: 'all', 
+    gambling: 'all', 
+    creo_lang: 'all', 
+    game_name: '', 
+    game_type: 'all' 
+  });
+  const [filtersB, setFiltersB] = useState<FilterState>({ 
+    hook: 'all', 
+    sexy: 'all', 
+    gambling: 'all', 
+    creo_lang: 'all', 
+    game_name: '', 
+    game_type: 'all' 
+  });
   
   // Настройки отображения
   const [displayLimit, setDisplayLimit] = useState(50);
@@ -579,71 +592,37 @@ export default function App() {
   const normalizeItem = (item: any): CreativeData | null => {
     if (!item || typeof item !== 'object') return null;
     
-    let creative_id: string | number | undefined;
-    let method: string | undefined;
-    let evidence: any;
-    let summary: any;
-    let metadata: string = item.metadata || '';
+    let creative_id: string | undefined;
+    let method: string | undefined = item.method;
+    let evidence: any = item.evidence || {};
+    let classification: any = item.classification || {};
+    let metadata: string = item.metadata_url || item.metadata || '';
 
-    const containers = [item.classification, item.results, item].filter(c => c && typeof c === 'object');
-
-    for (const c of containers) {
-      if (c.creative_id !== undefined) {
-        creative_id = c.creative_id;
-        break;
-      }
+    if (item.creative_id !== undefined) {
+      creative_id = String(item.creative_id);
+    } else if (item.id !== undefined) {
+      creative_id = String(item.id);
     }
 
     if (creative_id === undefined) {
-      if (item.results && (item.results.id !== undefined || item.results.creative_id !== undefined)) {
-        creative_id = item.results.creative_id !== undefined ? item.results.creative_id : item.results.id;
-      } else if (item.id !== undefined) {
-        creative_id = item.id;
-      }
-    }
-
-    // Capture the creative_id as a string for comparison purposes
-    const idString = creative_id !== undefined ? String(creative_id) : undefined;
-
-    for (const c of containers) {
-      if (c.classification && typeof c.classification === 'object' && (c.classification.niche || c.classification.content_style)) {
-        summary = c.classification;
-        break;
-      }
-    }
-
-    for (const c of containers) {
-      if (c.evidence && !evidence) evidence = c.evidence;
-      if (c.method && !method) method = c.method;
-    }
-
-    if (idString === undefined || !summary || !evidence) return null;
-
-    // Ищем hook в классификации или самом объекте
-    let hook: string | null = null;
-    if (summary && summary.hook !== undefined) {
-      hook = summary.hook;
-    }
-    if (hook === null) {
-      for (const c of containers) {
-        if (c.hook !== undefined) {
-          hook = c.hook;
-          break;
-        }
-      }
+      return null;
     }
 
     return {
       id: typeof item.id === 'number' ? item.id : (typeof item.id === 'string' ? parseInt(item.id) || 0 : 0),
       classification: {
-        creative_id: idString,
+        creative_id,
         method,
         evidence,
         classification: {
-          niche: Array.isArray(summary.niche) ? summary.niche : [],
-          content_style: Array.isArray(summary.content_style) ? summary.content_style : [],
-          target_market: summary.target_market || 'N/A',
-          hook: hook // Сохраняем разобранный хук
+          hook: String(classification.hook || 'other'),
+          sexy: String(classification.sexy || 'other'),
+          gambling: String(classification.gambling || 'No'),
+          creo_lang: String(classification.creo_lang || 'Unknown'),
+          game_name: String(classification.game_name || 'Unknown'),
+          game_type: String(classification.game_type || 'Unknown'),
+          audio_lang: String(classification.audio_lang || 'Unknown'),
+          game_provider: String(classification.game_provider || 'Unknown')
         }
       },
       metadata
@@ -668,26 +647,37 @@ export default function App() {
   // Определение доступных опций фильтрации на основе загруженных файлов данных
   const availableFilters = useMemo(() => {
     const getOptions = (data: any) => {
-      const niches = new Set<string>();
-      const styles = new Set<string>();
-      const hooks = new Set<string>(); // Создание множества под уникальные тексты хуков
+      const hooks = new Set<string>();
+      const sexys = new Set<string>();
+      const gamblings = new Set<string>();
+      const creoLangs = new Set<string>();
+      const gameTypes = new Set<string>();
       if (data) {
         const list = normalizeData(data);
         list.forEach(item => {
-          item.classification.classification.niche.forEach(n => niches.add(n));
-          item.classification.classification.content_style.forEach(s => styles.add(s));
-          
-          // Получаем разобранный хук для добавления в опции фильтра
-          const h = parseHookVal(item.classification.classification.hook);
-          if (h && h !== '---') {
-            hooks.add(h);
+          if (item.classification.classification.hook) {
+            hooks.add(item.classification.classification.hook);
+          }
+          if (item.classification.classification.sexy) {
+            sexys.add(item.classification.classification.sexy);
+          }
+          if (item.classification.classification.gambling) {
+            gamblings.add(item.classification.classification.gambling);
+          }
+          if (item.classification.classification.creo_lang) {
+            creoLangs.add(item.classification.classification.creo_lang);
+          }
+          if (item.classification.classification.game_type) {
+            gameTypes.add(item.classification.classification.game_type);
           }
         });
       }
       return {
-        niches: Array.from(niches).sort(),
-        styles: Array.from(styles).sort(),
-        hooks: Array.from(hooks).sort() // Сортируем собранные хуки
+        hooks: Array.from(hooks).sort(),
+        sexys: Array.from(sexys).sort(),
+        gamblings: Array.from(gamblings).sort(),
+        creoLangs: Array.from(creoLangs).sort(),
+        gameTypes: Array.from(gameTypes).sort()
       };
     };
 
@@ -704,29 +694,30 @@ export default function App() {
     
     // If we only have sourceData, we show all items in "View Mode"
     if (!comparisonData) {
-      return sourceList.map(item => ({
-        creativeId: String(item.classification.creative_id),
-        original: item,
-        diffs: {
-          niche: false,
-          content_style: false,
-          target_market: false
-        }
-      }));
+      return sourceList.map(item => {
+        const diffs: Record<string, boolean> = {};
+        Object.keys(item.classification.classification).forEach(k => {
+          diffs[k] = false;
+        });
+        return {
+          creativeId: item.classification.creative_id,
+          original: item,
+          diffs
+        };
+      });
     }
 
     const comparisonList = normalizeData(comparisonData);
 
     const sourceMap = new Map<string, CreativeData>();
     sourceList.forEach(item => {
-      const id = String(item.classification.creative_id);
-      sourceMap.set(id, item);
+      sourceMap.set(item.classification.creative_id, item);
     });
 
     const comparisonResults: ComparisonResult[] = [];
 
     comparisonList.forEach(compItem => {
-      const id = String(compItem.classification.creative_id);
+      const id = compItem.classification.creative_id;
       const original = sourceMap.get(id);
 
       if (original) {
@@ -735,26 +726,26 @@ export default function App() {
 
         if (!sourceSummaries || !compSummaries) return;
 
-        const niche1 = Array.isArray(sourceSummaries.niche) ? [...sourceSummaries.niche].sort() : [];
-        const niche2 = Array.isArray(compSummaries.niche) ? [...compSummaries.niche].sort() : [];
-        
-        const style1 = Array.isArray(sourceSummaries.content_style) ? [...sourceSummaries.content_style].sort() : [];
-        const style2 = Array.isArray(compSummaries.content_style) ? [...compSummaries.content_style].sort() : [];
+        const diffs: Record<string, boolean> = {};
+        let hasAnyDiff = false;
 
-        const nicheDiff = JSON.stringify(niche1) !== JSON.stringify(niche2);
-        const styleDiff = JSON.stringify(style1) !== JSON.stringify(style2);
-        const marketDiff = sourceSummaries.target_market !== compSummaries.target_market;
+        const keys = [
+          'hook', 'sexy', 'gambling', 'creo_lang',
+          'game_name', 'game_type', 'audio_lang', 'game_provider'
+        ];
 
-        if (nicheDiff || styleDiff || marketDiff) {
+        keys.forEach(k => {
+          const diff = sourceSummaries[k] !== compSummaries[k];
+          diffs[k] = diff;
+          if (diff) hasAnyDiff = true;
+        });
+
+        if (hasAnyDiff) {
           comparisonResults.push({
             creativeId: id,
             original,
             comparison: compItem,
-            diffs: {
-              niche: nicheDiff,
-              content_style: styleDiff,
-              target_market: marketDiff
-            }
+            diffs
           });
         }
       }
@@ -773,30 +764,26 @@ export default function App() {
     }
 
     const applyFilters = (item: CreativeData, filters: FilterState) => {
-      // Ниша
-      if (filters.niche !== 'all' && !item.classification.classification.niche.includes(filters.niche)) {
+      if (filters.hook !== 'all' && item.classification.classification.hook !== filters.hook) {
         return false;
       }
-      // Стиль
-      if (filters.style !== 'all' && !item.classification.classification.content_style.includes(filters.style)) {
+      if (filters.sexy !== 'all' && item.classification.classification.sexy !== filters.sexy) {
         return false;
       }
-      // Метод
-      if (filters.method !== 'all') {
-        const method = item.classification.method;
-        const normalizedSelected = filters.method === 'Classifier' ? 'fast_classifier' : (filters.method === 'Qwen' ? 'qwen_fallback' : filters.method);
-        if (method !== normalizedSelected) return false;
+      if (filters.gambling !== 'all' && item.classification.classification.gambling !== filters.gambling) {
+        return false;
       }
-      // Фильтр по наличию или значению текста хука (Hook)
-      if (filters.hook !== 'all') {
-        const hookVal = parseHookVal(item.classification.classification.hook);
-        if (filters.hook === 'has_hook') {
-          if (hookVal === '---') return false; // Исключаем записи без хука
-        } else if (filters.hook === 'no_hook') {
-          if (hookVal !== '---') return false; // Исключаем записи с хуком
-        } else {
-          // Совпадение по строгому тексту хука
-          if (hookVal !== filters.hook) return false;
+      if (filters.creo_lang !== 'all' && item.classification.classification.creo_lang !== filters.creo_lang) {
+        return false;
+      }
+      if (filters.game_type !== 'all' && item.classification.classification.game_type !== filters.game_type) {
+        return false;
+      }
+      if (filters.game_name.trim() !== '') {
+        const searchName = filters.game_name.toLowerCase();
+        const itemName = (item.classification.classification.game_name || '').toLowerCase();
+        if (!itemName.includes(searchName)) {
+          return false;
         }
       }
       return true;
@@ -818,12 +805,22 @@ export default function App() {
     return list;
   }, [results, searchQuery, filtersA, filtersB, comparisonData]);
 
-  const stats = useMemo(() => ({
-    total: results.length,
-    niche: results.filter(r => r.diffs.niche).length,
-    style: results.filter(r => r.diffs.content_style).length,
-    market: results.filter(r => r.diffs.target_market).length
-  }), [results]);
+  const stats = useMemo(() => {
+    let niche = 0;
+    let style = 0;
+    let market = 0;
+    results.forEach(r => {
+      if (r.diffs.game_type) niche++;
+      if (r.diffs.creo_lang) style++;
+      if (r.diffs.gambling) market++;
+    });
+    return {
+      total: results.length,
+      niche,
+      style,
+      market
+    };
+  }, [results]);
 
   const analysisInfo = useMemo(() => {
     if (!sourceData) return null;
@@ -840,10 +837,10 @@ export default function App() {
 
     const comparisonList = normalizeData(comparisonData);
     
-    const sourceIds = new Set(sourceList.map(i => String(i.classification.creative_id)));
+    const sourceIds = new Set(sourceList.map(i => i.classification.creative_id));
     let matches = 0;
     comparisonList.forEach(i => {
-      if (sourceIds.has(String(i.classification.creative_id))) matches++;
+      if (sourceIds.has(i.classification.creative_id)) matches++;
     });
 
     return {
@@ -1041,9 +1038,9 @@ export default function App() {
             {comparisonData && (
               <div className="grid grid-cols-3 gap-6 max-w-7xl mx-auto">
                 {[
-                  { label: 'Niche Mismatches', value: stats.niche, color: 'bg-zinc-500' },
-                  { label: 'Style Mismatches', value: stats.style, color: 'bg-blue-600' },
-                  { label: 'Market Mismatches', value: stats.market, color: 'bg-pink-600' }
+                  { label: 'Game Type Mismatches', value: stats.niche, color: 'bg-zinc-500' },
+                  { label: 'Creo Lang Mismatches', value: stats.style, color: 'bg-blue-600' },
+                  { label: 'Gambling Mismatches', value: stats.market, color: 'bg-pink-600' }
                 ].map((stat, i) => (
                   <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between">
                     <div className="space-y-1">
@@ -1099,59 +1096,66 @@ export default function App() {
                         
                         {/* Tags Overlay */}
                         <div className="absolute top-4 right-4 flex flex-col items-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 transition-transform">
-                          {result.original.classification.classification.niche.length > 0 && <Tag text={result.original.classification.classification.niche[0]} color="gray" />}
-                          {result.original.classification.classification.content_style.length > 0 && <Tag text={result.original.classification.classification.content_style[0]} color="blue" />}
-                          <Tag text={result.original.classification.classification.target_market} color="pink" />
+                          <Tag text={result.original.classification.classification.hook} color="gray" />
+                          <Tag text={result.original.classification.classification.sexy} color="pink" />
+                          <Tag text={result.original.classification.classification.creo_lang} color="blue" />
                         </div>
                       </div>
 
-                      <div className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="text-xs font-mono text-zinc-500">ID: {result.creativeId}</span>
-                          <div className="flex gap-1.5">
-                            {result.diffs.niche && <div className="w-1.5 h-1.5 rounded-full bg-zinc-500" title="Niche Mismatch" />}
-                            {result.diffs.content_style && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" title="Style Mismatch" />}
-                            {result.diffs.target_market && <div className="w-1.5 h-1.5 rounded-full bg-pink-500" title="Market Mismatch" />}
+                      <div className="p-4">
+                        {/* Gambling */}
+                        <div className="mb-3 grid grid-cols-1 gap-1">
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-[10px] text-zinc-600 font-bold uppercase">Gambling</p>
+                            {result.diffs.gambling && <div className="w-1.5 h-1.5 rounded-full bg-pink-500" title="Gambling Mismatch" />}
                           </div>
+                          {result.comparison ? (
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <p className="text-zinc-400 truncate">{result.original.classification.classification.gambling || 'No'}</p>
+                              <p className="text-blue-400 truncate text-right font-medium">{result.comparison.classification.classification.gambling || 'No'}</p>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-zinc-400 truncate">{result.original.classification.classification.gambling || 'No'}</p>
+                          )}
                         </div>
 
-                        <div className={`grid ${result.comparison ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                        {/* Game Name */}
+                        <div className={`grid ${result.comparison ? 'grid-cols-2' : 'grid-cols-1'} gap-4 pt-2.5 border-t border-zinc-800/80`}>
                           <div className="space-y-1">
-                            <p className="text-[10px] text-zinc-600 font-bold uppercase">{result.comparison ? 'Original' : 'Category'}</p>
-                            <p className="text-xs text-white truncate">{result.original.classification.classification.niche[0] || 'N/A'}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-[10px] text-zinc-600 font-bold uppercase">{result.comparison ? 'Orig. Name' : 'Game Name'}</p>
+                              {result.diffs.game_name && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" title="Game Name Mismatch" />}
+                            </div>
+                            <p className="text-xs text-white truncate" title={result.original.classification.classification.game_name}>{result.original.classification.classification.game_name || 'N/A'}</p>
                           </div>
                           {result.comparison && (
-                            <div className="space-y-1 text-right">
-                              <p className="text-[10px] text-zinc-600 font-bold uppercase">Comparison</p>
-                              <p className="text-xs text-blue-400 truncate">{result.comparison.classification.classification.niche[0] || 'N/A'}</p>
+                            <div className="space-y-1 text-right flex flex-col items-end">
+                              <p className="text-[10px] text-zinc-600 font-bold uppercase">Comp. Name</p>
+                              <p className="text-xs text-blue-400 truncate w-full" title={result.comparison.classification.classification.game_name}>{result.comparison.classification.classification.game_name || 'N/A'}</p>
                             </div>
                           )}
                         </div>
 
-                        {/* Отображение хука (Hook) в карточке списка */}
-                        <div className="mt-4 pt-3 border-t border-zinc-800/80 grid grid-cols-1 gap-1">
-                          <p className="text-[10px] text-zinc-600 font-bold uppercase">Hook</p>
+                        {/* Game Provider */}
+                        <div className="mt-3 pt-2.5 border-t border-zinc-800/80 grid grid-cols-1 gap-1">
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-[10px] text-zinc-600 font-bold uppercase">Game Provider</p>
+                            {result.diffs.game_provider && <div className="w-1.5 h-1.5 rounded-full bg-zinc-500" title="Game Provider Mismatch" />}
+                          </div>
                           {result.comparison ? (
                             <div className="grid grid-cols-2 gap-2 text-xs">
-                              <p className="text-zinc-400 truncate" title={parseHookVal(result.original.classification.classification.hook)}>
-                                {parseHookVal(result.original.classification.classification.hook)}
+                              <p className="text-zinc-400 truncate" title={result.original.classification.classification.game_provider}>
+                                {result.original.classification.classification.game_provider || 'N/A'}
                               </p>
-                              <p className="text-blue-400 truncate text-right font-medium" title={parseHookVal(result.comparison.classification.classification.hook)}>
-                                {parseHookVal(result.comparison.classification.classification.hook)}
+                              <p className="text-blue-400 truncate text-right font-medium" title={result.comparison.classification.classification.game_provider}>
+                                {result.comparison.classification.classification.game_provider || 'N/A'}
                               </p>
                             </div>
                           ) : (
-                            <p className="text-xs text-zinc-400 truncate" title={parseHookVal(result.original.classification.classification.hook)}>
-                              {parseHookVal(result.original.classification.classification.hook)}
+                            <p className="text-xs text-zinc-400 truncate" title={result.original.classification.classification.game_provider}>
+                              {result.original.classification.classification.game_provider || 'N/A'}
                             </p>
                           )}
-                        </div>
-                        
-                        <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center justify-between group/btn">
-                          <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
-                            {result.comparison ? 'Compare Evidence' : 'View Details'}
-                          </span>
-                          <ChevronRight className="w-4 h-4 text-zinc-600 translate-x-0 group-hover/btn:translate-x-1 transition-transform" />
                         </div>
                       </div>
                     </motion.div>

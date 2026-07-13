@@ -1,0 +1,67 @@
+[
+  {
+    "id": 1886,
+    "classification": {
+      "hook": "other",
+      "sexy": "other",
+      "gambling": "Yes",
+      "creo_lang": "Portuguese",
+      "game_name": "Unknown",
+      "game_type": "Slots",
+      "audio_lang": "Portuguese",
+      "game_provider": "Unknown"
+    },
+    "metadata_url": "https://tyver.flang.io/tyver-february26-img-1/641603646_1962144981007532_6575653040957048464_n.jpg",
+    "creative_id": "1672229797520311",
+    "evidence": {
+      "hook": {
+        "other": {
+          "confidence": 0.85,
+          "justification": "Автоматический fallback (оригинальный hook 'Big Win' не разрешен)"
+        }
+      },
+      "sexy": {
+        "other": {
+          "confidence": 0.9,
+          "justification": "Нет явных сексуальных элементов."
+        }
+      },
+      "gambling": {
+        "Yes": {
+          "confidence": 0.95,
+          "justification": "Изображение содержит элементы азартных игр, такие как золотые миски с китайскими символами, что указывает на iGaming."
+        }
+      },
+      "creo_lang": {
+        "Portuguese": {
+          "confidence": 0.9,
+          "justification": "Заголовок 'LANÇADA AGORA' и 'TAXA DE VITÓRIAS SUPER ALTA' на португальском языке."
+        }
+      },
+      "game_name": {
+        "Unknown": {
+          "confidence": 0.8,
+          "justification": "Изображение не содержит явного названия игры."
+        }
+      },
+      "game_type": {
+        "Slots": {
+          "confidence": 0.9,
+          "justification": "Изображение содержит элементы слотов, такие как золотые миски с китайскими символами."
+        }
+      },
+      "audio_lang": {
+        "Portuguese": {
+          "confidence": 0.9,
+          "justification": "Заголовок 'LANÇADA AGORA' и 'TAXA DE VITÓRIAS SUPER ALTA' на португальском языке."
+        }
+      },
+      "game_provider": {
+        "Unknown": {
+          "confidence": 0.8,
+          "justification": "Изображение не содержит логотипа или узнаваемого UI стиля, который бы позволил определить провайдера."
+        }
+      }
+    }
+  }
+]
