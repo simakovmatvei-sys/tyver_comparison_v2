@@ -5,14 +5,14 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Upload, 
-  Search, 
-  FileJson, 
-  AlertCircle, 
-  CheckCircle2, 
-  ChevronRight, 
-  X, 
+import {
+  Upload,
+  Search,
+  FileJson,
+  AlertCircle,
+  CheckCircle2,
+  ChevronRight,
+  X,
   ExternalLink,
   Brain,
   Filter,
@@ -22,21 +22,21 @@ import {
   Check,
   FileType
 } from 'lucide-react';
-import { 
-  CreativeData, 
-  ComparisonResult, 
+import {
+  CreativeData,
+  ComparisonResult,
   EvidenceDetail,
   ClassificationSummary
 } from './types';
 
 // --- Components ---
 
-const FileUploader = ({ 
-  label, 
-  onFileLoaded, 
-  fileLoaded 
-}: { 
-  label: string; 
+const FileUploader = ({
+  label,
+  onFileLoaded,
+  fileLoaded
+}: {
+  label: string;
   onFileLoaded: (data: any) => void;
   fileLoaded: boolean;
 }) => {
@@ -118,11 +118,11 @@ interface EvidenceCardProps {
 /**
  * Отображение карточки с доказательством (confidence и обоснование)
  */
-const EvidenceCard: React.FC<EvidenceCardProps> = ({ 
-  title, 
-  confidence, 
-  justification, 
-  theme = 'zinc' 
+const EvidenceCard: React.FC<EvidenceCardProps> = ({
+  title,
+  confidence,
+  justification,
+  theme = 'zinc'
 }) => {
   const themes = {
     zinc: 'bg-[#1a1b1e]/50 border-zinc-800',
@@ -162,16 +162,16 @@ const MetadataLink = ({ url }: { url: string }) => {
     <div className="flex items-center gap-2 group/link">
       <div className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-lg px-4 py-2 flex items-center gap-3 hover:bg-white/10 transition-colors">
         <LinkIcon className="w-4 h-4 text-blue-400 shrink-0" />
-        <a 
-          href={url} 
-          target="_blank" 
-          rel="noreferrer" 
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
           className="text-xs text-zinc-300 truncate hover:text-blue-400 transition-colors"
         >
           {url}
         </a>
       </div>
-      <button 
+      <button
         onClick={handleCopy}
         className={`p-2 rounded-lg border transition-all ${copied ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10'}`}
         title="Copy to clipboard"
@@ -193,20 +193,20 @@ interface FilterState {
 }
 
 // Компонент раздела фильтров для вывода независимых селектов DataSet A или B
-const FilterSection = ({ 
-  label, 
-  options, 
-  filters, 
+const FilterSection = ({
+  label,
+  options,
+  filters,
   onChange,
   color = "blue"
-}: { 
-  label: string; 
-  options: { 
-    hooks: string[], 
-    sexys: string[], 
-    gamblings: string[], 
-    creoLangs: string[], 
-    gameTypes: string[] 
+}: {
+  label: string;
+  options: {
+    hooks: string[],
+    sexys: string[],
+    gamblings: string[],
+    creoLangs: string[],
+    gameTypes: string[]
   };
   filters: FilterState;
   onChange: (key: keyof FilterState, value: string) => void;
@@ -229,12 +229,12 @@ const FilterSection = ({
           <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">{label}</span>
         </div>
       </div>
-      
+
       {/* Сетка фильтров изменена на 6 колонок/строк для компактности */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {/* Фильтр по Hook */}
         <div className="relative group/sel">
-          <select 
+          <select
             value={filters.hook}
             onChange={(e) => onChange('hook', e.target.value)}
             className={`${selectBaseClass} pr-8`}
@@ -251,7 +251,7 @@ const FilterSection = ({
 
         {/* Фильтр по Sexy */}
         <div className="relative group/sel">
-          <select 
+          <select
             value={filters.sexy}
             onChange={(e) => onChange('sexy', e.target.value)}
             className={`${selectBaseClass} pr-8`}
@@ -268,7 +268,7 @@ const FilterSection = ({
 
         {/* Фильтр по Gambling */}
         <div className="relative group/sel">
-          <select 
+          <select
             value={filters.gambling}
             onChange={(e) => onChange('gambling', e.target.value)}
             className={`${selectBaseClass} pr-8`}
@@ -285,7 +285,7 @@ const FilterSection = ({
 
         {/* Фильтр по Creo Lang */}
         <div className="relative group/sel">
-          <select 
+          <select
             value={filters.creo_lang}
             onChange={(e) => onChange('creo_lang', e.target.value)}
             className={`${selectBaseClass} pr-8`}
@@ -302,7 +302,7 @@ const FilterSection = ({
 
         {/* Фильтр по Game Type */}
         <div className="relative group/sel">
-          <select 
+          <select
             value={filters.game_type}
             onChange={(e) => onChange('game_type', e.target.value)}
             className={`${selectBaseClass} pr-8`}
@@ -319,7 +319,7 @@ const FilterSection = ({
 
         {/* Фильтр по Game Name (Текстовый инпут) */}
         <div className="relative">
-          <input 
+          <input
             type="text"
             placeholder="Game Name..."
             value={filters.game_name}
@@ -332,12 +332,12 @@ const FilterSection = ({
   );
 };
 
-const Modal = ({ 
-  item, 
-  onClose 
-}: { 
-  item: ComparisonResult; 
-  onClose: () => void 
+const Modal = ({
+  item,
+  onClose
+}: {
+  item: ComparisonResult;
+  onClose: () => void
 }) => {
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
@@ -376,14 +376,14 @@ const Modal = ({
               <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest leading-none">Creative ID</span>
               <span className="text-white font-mono text-sm leading-none">{item.creativeId}</span>
             </div>
-            
+
             {/* Metadata Links */}
             <div className="flex items-center gap-4 border-l border-zinc-800 pl-6">
               {item?.original?.metadata && (
-                <a 
-                  href={item.original.metadata} 
-                  target="_blank" 
-                  rel="noreferrer" 
+                <a
+                  href={item.original.metadata}
+                  target="_blank"
+                  rel="noreferrer"
                   className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1.5 transition-colors"
                 >
                   <ExternalLink className="w-3 h-3" />
@@ -391,10 +391,10 @@ const Modal = ({
                 </a>
               )}
               {item.comparison && item?.comparison?.metadata && (
-                <a 
-                  href={item.comparison.metadata} 
-                  target="_blank" 
-                  rel="noreferrer" 
+                <a
+                  href={item.comparison.metadata}
+                  target="_blank"
+                  rel="noreferrer"
                   className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1.5 transition-colors"
                 >
                   <ExternalLink className="w-3 h-3" />
@@ -420,7 +420,7 @@ const Modal = ({
               </div>
             )}
           </div>
-          
+
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
             <X className="w-5 h-5 text-zinc-400" />
           </button>
@@ -428,19 +428,19 @@ const Modal = ({
 
         {/* Content Body */}
         <div className="flex-1 flex min-h-0">
-          
+
           {/* Narrow Left Bar: Media */}
           <div className="w-[30%] border-r border-zinc-800 p-8 flex flex-col gap-6 bg-zinc-900/30 shrink-0">
             <div className="aspect-square w-full rounded-2xl overflow-hidden bg-black border border-zinc-800 shadow-2xl">
               {typeof item?.original?.metadata === 'string' && item.original.metadata.includes('.mp4') ? (
-                <video 
+                <video
                   ref={videoRef}
-                  src={item.original.metadata} 
-                  loop 
-                  muted 
-                  autoPlay 
-                  playsInline 
-                  className="w-full h-full object-cover" 
+                  src={item.original.metadata}
+                  loop
+                  muted
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <img src={item?.original?.metadata || ''} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -461,71 +461,70 @@ const Modal = ({
 
           {/* Wide Right Area: Data Comparison */}
           <div className="flex-1 flex flex-col min-w-0 bg-[#0a0b0d]">
-             {/* Labels Header */}
-             <div className={`grid ${item.comparison ? 'grid-cols-2' : 'grid-cols-1'} h-12 border-b border-zinc-800/50`}>
-               <div className="flex items-center px-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.2em] bg-zinc-900/10">Original Dataset</div>
-               {item.comparison && <div className="flex items-center px-8 text-[10px] font-black uppercase text-blue-500 tracking-[0.2em] bg-blue-500/5">Comparison Dataset</div>}
-             </div>
+            {/* Labels Header */}
+            <div className={`grid ${item.comparison ? 'grid-cols-2' : 'grid-cols-1'} h-12 border-b border-zinc-800/50`}>
+              <div className="flex items-center px-8 text-[10px] font-black uppercase text-zinc-500 tracking-[0.2em] bg-zinc-900/10">Original Dataset</div>
+              {item.comparison && <div className="flex items-center px-8 text-[10px] font-black uppercase text-blue-500 tracking-[0.2em] bg-blue-500/5">Comparison Dataset</div>}
+            </div>
 
-             <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
 
-                {/* Comparison Grid Section */}
-                {[
-                  { id: "gambling", title: "Gambling / iGaming", field: "gambling" },
-                  { id: "hook", title: "Hook Text", field: "hook" },
-                  { id: "sexy", title: "Sexy Content", field: "sexy" },
-                  { id: "game_name", title: "Game Name", field: "game_name" },
-                  { id: "game_provider", title: "Game Provider", field: "game_provider" },
-                  { id: "game_type", title: "Game Type", field: "game_type" },
-                  { id: "audio_lang", title: "Audio Language", field: "audio_lang" },
-                  { id: "creo_lang", title: "Creo Language", field: "creo_lang" }
-                ].map(section => {
-                  const origVal = item?.original?.classification?.classification?.[section.field] || "Unknown";
-                  const compVal = item?.comparison?.classification?.classification?.[section.field];
-                  
-                  const origEvidence = item?.original?.classification?.evidence?.[section.field]?.[origVal];
-                  const compEvidence = (compVal && item?.comparison?.classification?.evidence) ? item.comparison.classification.evidence[section.field]?.[compVal] : undefined;
+              {/* Comparison Grid Section */}
+              {[
+                { id: "gambling", title: "Gambling / iGaming", field: "gambling" },
+                { id: "hook", title: "Hook Text", field: "hook" },
+                { id: "sexy", title: "Sexy Content", field: "sexy" },
+                { id: "game_name", title: "Game Name", field: "game_name" },
+                { id: "game_provider", title: "Game Provider", field: "game_provider" },
+                { id: "game_type", title: "Game Type", field: "game_type" },
+                { id: "creo_lang", title: "Creo Language", field: "creo_lang" }
+              ].map(section => {
+                const origVal = item?.original?.classification?.classification?.[section.field] || "Unknown";
+                const compVal = item?.comparison?.classification?.classification?.[section.field];
 
-                  return (
-                    <section key={section.id} className="space-y-4">
-                      <div className="flex items-center gap-3">
-                         <h4 className="text-sm font-black uppercase text-zinc-200 tracking-wider">{section.title}</h4>
-                         <div className="h-px bg-zinc-800 flex-1" />
+                const origEvidence = item?.original?.classification?.evidence?.[section.field]?.[origVal];
+                const compEvidence = (compVal && item?.comparison?.classification?.evidence) ? item.comparison.classification.evidence[section.field]?.[compVal] : undefined;
+
+                return (
+                  <section key={section.id} className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <h4 className="text-sm font-black uppercase text-zinc-200 tracking-wider">{section.title}</h4>
+                      <div className="h-px bg-zinc-800 flex-1" />
+                    </div>
+                    <div className={"grid " + (item.comparison ? "grid-cols-2" : "grid-cols-1") + " gap-8"}>
+                      <div className="flex flex-col h-full">
+                        <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg space-y-3 shadow-lg">
+                          <p className="text-sm font-bold text-white">{origVal}</p>
+                          {origEvidence && (
+                            <div className="pt-2.5 border-t border-white/5 flex items-start justify-between gap-4">
+                              <p className="text-[11px] leading-snug text-zinc-400 flex-1">
+                                {origEvidence.justification || "No justification provided."}
+                              </p>
+                              <span className="text-xs font-mono font-bold text-zinc-500 shrink-0">[{origEvidence.confidence}]</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className={"grid " + (item.comparison ? "grid-cols-2" : "grid-cols-1") + " gap-8"}>
+                      {item.comparison && compVal !== undefined && (
                         <div className="flex flex-col h-full">
-                          <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg space-y-3 shadow-lg">
-                            <p className="text-sm font-bold text-white">{origVal}</p>
-                            {origEvidence && (
+                          <div className={"p-4 rounded-lg border space-y-3 shadow-lg " + ((item?.diffs && item.diffs[section.field]) ? "border-amber-500/50 bg-amber-500/5" : "border-zinc-800 bg-zinc-900/50")}>
+                            <p className={"text-sm font-bold " + (item.diffs[section.field] ? "text-amber-400" : "text-white")}>{compVal}</p>
+                            {compEvidence && (
                               <div className="pt-2.5 border-t border-white/5 flex items-start justify-between gap-4">
                                 <p className="text-[11px] leading-snug text-zinc-400 flex-1">
-                                  {origEvidence.justification || "No justification provided."}
+                                  {compEvidence.justification || "No justification provided."}
                                 </p>
-                                <span className="text-xs font-mono font-bold text-zinc-500 shrink-0">[{origEvidence.confidence}]</span>
+                                <span className="text-xs font-mono font-bold text-zinc-500 shrink-0">[{compEvidence.confidence}]</span>
                               </div>
                             )}
                           </div>
                         </div>
-                        {item.comparison && compVal !== undefined && (
-                          <div className="flex flex-col h-full">
-                            <div className={"p-4 rounded-lg border space-y-3 shadow-lg " + ((item?.diffs && item.diffs[section.field]) ? "border-amber-500/50 bg-amber-500/5" : "border-zinc-800 bg-zinc-900/50")}>
-                              <p className={"text-sm font-bold " + (item.diffs[section.field] ? "text-amber-400" : "text-white")}>{compVal}</p>
-                              {compEvidence && (
-                                <div className="pt-2.5 border-t border-white/5 flex items-start justify-between gap-4">
-                                  <p className="text-[11px] leading-snug text-zinc-400 flex-1">
-                                    {compEvidence.justification || "No justification provided."}
-                                  </p>
-                                  <span className="text-xs font-mono font-bold text-zinc-500 shrink-0">[{compEvidence.confidence}]</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </section>
-                  );
-                })}
-             </div>
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
           </div>
 
         </div>
@@ -562,36 +561,36 @@ export default function App() {
   // Состояние данных
   const [sourceData, setSourceData] = useState<any>(null);
   const [comparisonData, setComparisonData] = useState<any>(null);
-  
+
   // Состояние UI
   const [selectedItem, setSelectedItem] = useState<ComparisonResult | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Независимые фильтры для двух документов (Dataset A и Dataset B + фильтры по ключам)
-  const [filtersA, setFiltersA] = useState<FilterState>({ 
-    hook: 'all', 
-    sexy: 'all', 
-    gambling: 'all', 
-    creo_lang: 'all', 
-    game_name: '', 
-    game_type: 'all' 
+  const [filtersA, setFiltersA] = useState<FilterState>({
+    hook: 'all',
+    sexy: 'all',
+    gambling: 'all',
+    creo_lang: 'all',
+    game_name: '',
+    game_type: 'all'
   });
-  const [filtersB, setFiltersB] = useState<FilterState>({ 
-    hook: 'all', 
-    sexy: 'all', 
-    gambling: 'all', 
-    creo_lang: 'all', 
-    game_name: '', 
-    game_type: 'all' 
+  const [filtersB, setFiltersB] = useState<FilterState>({
+    hook: 'all',
+    sexy: 'all',
+    gambling: 'all',
+    creo_lang: 'all',
+    game_name: '',
+    game_type: 'all'
   });
-  
+
   // Настройки отображения
   const [displayLimit, setDisplayLimit] = useState(50);
   const [forceViewMode, setForceViewMode] = useState(false);
 
   const normalizeItem = (item: any): CreativeData | null => {
     if (!item || typeof item !== 'object') return null;
-    
+
     let creative_id: string | undefined;
     let method: string | undefined = item.method;
     let evidence: any = item.evidence || {};
@@ -691,7 +690,7 @@ export default function App() {
     if (!sourceData) return [];
 
     const sourceList = normalizeData(sourceData);
-    
+
     // If we only have sourceData, we show all items in "View Mode"
     if (!comparisonData) {
       return sourceList.map(item => {
@@ -731,7 +730,7 @@ export default function App() {
 
         const keys = [
           'hook', 'sexy', 'gambling', 'creo_lang',
-          'game_name', 'game_type', 'audio_lang', 'game_provider'
+          'game_name', 'game_type', 'game_provider'
         ];
 
         keys.forEach(k => {
@@ -756,7 +755,7 @@ export default function App() {
 
   const filteredResults = useMemo(() => {
     let list = results;
-    
+
     // Поиск по ID (глобальный)
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
@@ -825,7 +824,7 @@ export default function App() {
   const analysisInfo = useMemo(() => {
     if (!sourceData) return null;
     const sourceList = normalizeData(sourceData);
-    
+
     if (!comparisonData) {
       return {
         sourceCount: sourceList.length,
@@ -836,7 +835,7 @@ export default function App() {
     }
 
     const comparisonList = normalizeData(comparisonData);
-    
+
     const sourceIds = new Set(sourceList.map(i => i.classification.creative_id));
     let matches = 0;
     comparisonList.forEach(i => {
@@ -857,7 +856,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0a0b0d] text-zinc-100 font-sans selection:bg-blue-500/30">
-      
+
       {/* Header */}
       <header className="z-40 bg-[#0a0b0d]/95 backdrop-blur-xl border-b border-zinc-800/60 shadow-xl shadow-black/40">
         <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between gap-12">
@@ -877,7 +876,7 @@ export default function App() {
           <div className="flex-1 flex flex-col items-end gap-3 min-w-0">
             {/* Панель фильтров для первого файла */}
             {sourceData && (
-              <FilterSection 
+              <FilterSection
                 label={comparisonData ? "Dataset A (Original)" : "Filters"}
                 options={availableFilters.source}
                 filters={filtersA}
@@ -888,7 +887,7 @@ export default function App() {
 
             {/* Панель фильтров для второго файла */}
             {comparisonData && (
-              <FilterSection 
+              <FilterSection
                 label="Dataset B (Comparison)"
                 options={availableFilters.comparison}
                 filters={filtersB}
@@ -903,15 +902,15 @@ export default function App() {
           <div className="flex flex-col gap-3 shrink-0">
             <div className="relative group/search">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-hover/search:text-blue-500 transition-colors" />
-              <input 
-                type="text" 
-                placeholder="Filter IDs..." 
+              <input
+                type="text"
+                placeholder="Filter IDs..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:border-blue-500/50 transition-all w-32 xl:w-48 placeholder:text-zinc-700 group-hover:border-zinc-700"
               />
             </div>
-            
+
             <div className="flex items-center justify-end gap-4 px-1">
               <div className="flex flex-col items-end">
                 <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest leading-none mb-1">Found</span>
@@ -923,7 +922,7 @@ export default function App() {
       </header>
 
       <main className="max-w-full mx-auto px-6 py-8">
-        
+
         {/* Analysis Status */}
         {analysisInfo && (
           <div className="mb-8 p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl flex items-center justify-between mx-auto max-w-7xl">
@@ -945,7 +944,7 @@ export default function App() {
                 </>
               )}
             </div>
-            
+
             {!analysisInfo.isViewOnly ? (
               <>
                 {analysisInfo.matchCount === 0 && (
@@ -978,10 +977,10 @@ export default function App() {
               <p className="text-zinc-500">Upload a JSON file to explore its contents or compare two files.</p>
             </div>
             <div className="grid grid-cols-1 gap-6">
-              <FileUploader 
-                label="Source File (Original)" 
-                onFileLoaded={setSourceData} 
-                fileLoaded={!!sourceData} 
+              <FileUploader
+                label="Source File (Original)"
+                onFileLoaded={setSourceData}
+                fileLoaded={!!sourceData}
               />
             </div>
           </div>
@@ -992,19 +991,19 @@ export default function App() {
               <p className="text-zinc-500 text-sm">You can view the original file now or upload a comparison file.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <FileUploader 
-                label="Source File (Original)" 
-                onFileLoaded={setSourceData} 
-                fileLoaded={!!sourceData} 
+              <FileUploader
+                label="Source File (Original)"
+                onFileLoaded={setSourceData}
+                fileLoaded={!!sourceData}
               />
-              <FileUploader 
-                label="Comparison File" 
-                onFileLoaded={setComparisonData} 
-                fileLoaded={!!comparisonData} 
+              <FileUploader
+                label="Comparison File"
+                onFileLoaded={setComparisonData}
+                fileLoaded={!!comparisonData}
               />
             </div>
             <div className="flex flex-col gap-3">
-              <button 
+              <button
                 onClick={() => {
                   // We already have results from sourceData, but the logic 
                   // is stuck in the "Upload State" if comparisonData is null.
@@ -1013,17 +1012,17 @@ export default function App() {
                 className="hidden" // Just for semantic placeholder
               />
               {comparisonData && (
-                <motion.button 
+                <motion.button
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  onClick={() => {}} 
+                  onClick={() => { }}
                   className="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20"
                 >
                   Start Analysis
                   <ChevronRight className="w-5 h-5" />
                 </motion.button>
               )}
-              <button 
+              <button
                 onClick={() => setForceViewMode(true)}
                 className="text-zinc-500 hover:text-white text-sm font-bold transition-colors py-2"
               >
@@ -1033,7 +1032,7 @@ export default function App() {
           </div>
         ) : (
           <div className="space-y-8">
-            
+
             {/* Summary Bars */}
             {comparisonData && (
               <div className="grid grid-cols-3 gap-6 max-w-7xl mx-auto">
@@ -1068,10 +1067,10 @@ export default function App() {
                     >
                       <div className="aspect-square relative overflow-hidden">
                         {result.original.metadata.includes('.mp4') ? (
-                          <video 
-                            src={result.original.metadata} 
-                            muted 
-                            loop 
+                          <video
+                            src={result.original.metadata}
+                            muted
+                            loop
                             onMouseOver={(e) => {
                               const playPromise = e.currentTarget.play();
                               if (playPromise !== undefined) {
@@ -1083,17 +1082,17 @@ export default function App() {
                             onMouseOut={(e) => {
                               e.currentTarget.pause();
                             }}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
                         ) : (
-                          <img 
-                            src={result.original.metadata} 
-                            alt="" 
+                          <img
+                            src={result.original.metadata}
+                            alt=""
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             referrerPolicy="no-referrer"
                           />
                         )}
-                        
+
                         {/* Tags Overlay */}
                         <div className="absolute top-4 right-4 flex flex-col items-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 transition-transform">
                           <Tag text={result.original.classification.classification.hook} color="gray" />
@@ -1164,7 +1163,7 @@ export default function App() {
 
                 {displayLimit < filteredResults.length && (
                   <div className="flex justify-center">
-                    <button 
+                    <button
                       onClick={() => setDisplayLimit(prev => prev + 50)}
                       className="px-8 py-4 bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded-2xl font-bold text-sm transition-all flex items-center gap-3 active:scale-95"
                     >
@@ -1176,10 +1175,10 @@ export default function App() {
                 )}
               </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-zinc-500 gap-4">
-                    <ArrowRightLeft className="w-12 h-12 opacity-20" />
-                    <p className="font-medium">No differences detected with current data.</p>
-                </div>
+              <div className="flex flex-col items-center justify-center py-20 text-zinc-500 gap-4">
+                <ArrowRightLeft className="w-12 h-12 opacity-20" />
+                <p className="font-medium">No differences detected with current data.</p>
+              </div>
             )}
           </div>
         )}
